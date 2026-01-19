@@ -53,6 +53,7 @@ tmp_rfps_to_be_answered/
 # and you want them versioned, comment these lines out.
 data/kb/raw/
 data/kb/canonical/
+data/archive/
 
 # Legacy paths
 data_kb/raw/

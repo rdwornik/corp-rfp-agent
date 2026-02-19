@@ -2,212 +2,119 @@
   "$schema": "https://json-schema.org/draft/2020-12",
   "$id": "canonical_entry_v2",
   "title": "RFP KB Canonical Entry v2",
-  "description": "Schema for knowledge base entries. v2 is a superset of v1 — all new fields have defaults so existing v1 entries remain valid.",
+  "description": "Clean schema for new KB entries produced by kb_extract_historical.py. v1 entries (Planning/WMS/AIML) use canonical_question/canonical_answer and are untouched. Phase 3 will unify field names in llm_router.py.",
   "type": "object",
-  "required": ["kb_id", "domain", "canonical_question", "canonical_answer"],
-  "properties": {
+  "required": ["id", "question", "answer", "family_code", "category"],
 
-    "kb_id": {
-      "type": "string",
-      "description": "Unique identifier. v1 format: 'kb_0001' or 'wms_0001'. v2 format: '{PREFIX}-{CAT}-{NNNN}' e.g. 'WMS-FUNC-0042'",
-      "examples": ["WMS-FUNC-0042", "PLN-TECH-0001", "LOG-INTG-0007"]
-    },
+  "properties": {
 
     "id": {
       "type": "string",
-      "description": "v2 canonical ID. Format: {PREFIX}-{CAT}-{NNNN}. Derived from family id_prefix + category code + sequence number.",
-      "examples": ["WMS-FUNC-0042", "PLN-ARCH-0001"],
-      "default": ""
+      "description": "Unique entry ID. Format: {PREFIX}-{CAT}-{NNNN}, e.g. NET-FUNC-0042",
+      "examples": ["NET-FUNC-0042", "LOG-TECH-0007", "WMS-SEC-0001"]
     },
 
-    "domain": {
+    "question": {
       "type": "string",
-      "description": "Product family domain key. Must match a key in family_config.json.",
-      "enum": ["planning", "wms", "logistics", "scpo", "catman", "workforce", "commerce", "flexis", "network", "doddle", "aiml"]
+      "description": "The canonical question, rewritten to be generic (client-specific details removed)."
     },
 
-    "family_code": {
+    "answer": {
       "type": "string",
-      "description": "Same as domain. Used for ChromaDB filtered queries. Kept separate for future multi-family entries.",
-      "default": ""
-    },
-
-    "scope": {
-      "type": "string",
-      "description": "Whether this applies to the whole BY platform or is product-specific.",
-      "enum": ["platform", "product_specific"],
-      "default": "product_specific"
-    },
-
-    "category": {
-      "type": "string",
-      "description": "Top-level functional category.",
-      "enum": ["functional", "technical", "security", "deployment", "commercial", "general"],
-      "default": "functional"
-    },
-
-    "subcategory": {
-      "type": "string",
-      "description": "Finer-grained category. Free text — use consistent names within a domain.",
-      "examples": ["core_process", "architecture", "authentication", "integration", "reporting", "mobile", "configuration"],
-      "default": ""
-    },
-
-    "canonical_question": {
-      "type": "string",
-      "description": "The primary, clean phrasing of the question. Used as the main embedding text."
+      "description": "Blue Yonder's answer describing product capabilities. Never empty."
     },
 
     "question_variants": {
       "type": "array",
-      "description": "Alternative phrasings of the same question. Improves RAG recall by covering different customer wordings.",
+      "description": "Alternative phrasings of the question. Improves RAG recall.",
       "items": {"type": "string"},
       "default": []
-    },
-
-    "canonical_answer": {
-      "type": "string",
-      "description": "The authoritative answer. Should be self-contained — assume no other context."
     },
 
     "solution_codes": {
       "type": "array",
-      "description": "Which specific solution codes this entry applies to. Subset of the family's solution_codes in family_config.json. Empty = applies to all solutions in the family.",
+      "description": "Which solution codes this applies to. Empty = applies to all solutions in the family.",
       "items": {"type": "string"},
-      "examples": [["wms", "wms_native"], ["wms_labor"]],
       "default": []
+    },
+
+    "family_code": {
+      "type": "string",
+      "description": "Product family key from family_config.json.",
+      "enum": ["planning", "wms", "logistics", "scpo", "catman", "workforce",
+               "commerce", "flexis", "network", "doddle", "aiml"]
+    },
+
+    "category": {
+      "type": "string",
+      "description": "Top-level category.",
+      "enum": ["functional", "technical", "security", "deployment", "commercial", "general"]
+    },
+
+    "subcategory": {
+      "type": "string",
+      "description": "Specific topic within the category, snake_case.",
+      "examples": ["transport_visibility", "wave_picking", "sso_authentication"],
+      "default": ""
     },
 
     "tags": {
       "type": "array",
-      "description": "Keyword tags for search boosting and filtering. Lowercase, no spaces.",
+      "description": "Keyword tags for search boosting and filtering.",
       "items": {"type": "string"},
-      "examples": [["api", "rest", "integration"], ["mobile", "android", "rf-device"]],
       "default": []
     },
 
     "confidence": {
       "type": "string",
-      "description": "Quality/review status of this entry.",
       "enum": ["verified", "draft", "needs_review", "outdated"],
       "default": "draft"
     },
 
     "source_rfps": {
       "type": "array",
-      "description": "Which RFP deals or files contributed to this answer. Used for traceability.",
+      "description": "Archive IDs of source RFPs that contributed this answer.",
       "items": {"type": "string"},
-      "examples": [["ACME_2024_RFP.xlsx", "GlobalRetail_2025_RFP.xlsx"]],
+      "examples": [["ARC-0001"], ["ARC-0002", "ARC-0005"]],
       "default": []
-    },
-
-    "cloud_native_only": {
-      "type": "boolean",
-      "description": "If true, this answer only applies to the cloud-native / SaaS deployment. On-premise customers should be flagged.",
-      "default": false
-    },
-
-    "versioning": {
-      "type": "object",
-      "description": "Product version applicability. Inherited from v1 schema.",
-      "properties": {
-        "valid_from": {"type": ["string", "null"], "default": null},
-        "valid_until": {"type": ["string", "null"], "default": null},
-        "deprecated": {"type": "boolean", "default": false},
-        "superseded_by": {"type": ["string", "null"], "default": null},
-        "version_notes": {"type": "array", "items": {"type": "string"}, "default": []}
-      },
-      "default": {
-        "valid_from": null,
-        "valid_until": null,
-        "deprecated": false,
-        "superseded_by": null,
-        "version_notes": []
-      }
-    },
-
-    "rich_metadata": {
-      "type": "object",
-      "description": "Extended metadata. Superset of v1 rich_metadata.",
-      "properties": {
-        "keywords": {"type": "array", "items": {"type": "string"}, "default": []},
-        "question_type": {
-          "type": "string",
-          "enum": ["WHAT", "HOW", "CAN", "DOES", "IS", "WHY", "WHERE", "WHEN", "WHO", "OTHER"],
-          "default": "WHAT"
-        },
-        "source_type": {
-          "type": "string",
-          "enum": ["rfp_historical", "video_workshop", "documentation", "manual", "unknown"],
-          "default": "rfp_historical"
-        },
-        "source_id": {"type": "string", "default": ""},
-        "scope_confidence": {"type": "number", "minimum": 0, "maximum": 1, "default": 0.5},
-        "auto_classified": {"type": "boolean", "default": true}
-      },
-      "default": {}
-    },
-
-    "search_blob": {
-      "type": "string",
-      "description": "Pre-built search string combining all searchable fields. Auto-generated — do not edit manually.",
-      "default": ""
     },
 
     "last_updated": {
       "type": "string",
       "description": "ISO date of last update.",
-      "format": "date",
-      "default": ""
+      "format": "date"
     },
 
-    "created_date": {
+    "cloud_native_only": {
+      "type": "boolean",
+      "description": "True if this answer applies to SaaS/cloud-native deployment only.",
+      "default": false
+    },
+
+    "notes": {
       "type": "string",
-      "description": "ISO date when entry was created.",
-      "format": "date",
+      "description": "Internal notes. Not used in RAG retrieval.",
       "default": ""
     }
   },
 
-  "examples": [
-    {
-      "kb_id": "WMS-FUNC-0001",
-      "id": "WMS-FUNC-0001",
-      "domain": "wms",
-      "family_code": "wms",
-      "scope": "product_specific",
-      "category": "functional",
-      "subcategory": "core_process",
-      "canonical_question": "Does Blue Yonder WMS support wave-based picking?",
-      "question_variants": [
-        "Can Blue Yonder WMS do wave picking?",
-        "What picking strategies does WMS support?",
-        "Is wave picking available in BY WMS?"
-      ],
-      "canonical_answer": "Yes, Blue Yonder WMS supports wave-based picking as well as waveless and dynamic picking strategies. Waves can be configured by order type, carrier, route, or other criteria.",
-      "solution_codes": ["wms", "wms_native"],
-      "tags": ["picking", "wave", "fulfillment", "order-management"],
-      "confidence": "verified",
-      "source_rfps": ["ACME_2024_WMS_RFP.xlsx"],
-      "cloud_native_only": false,
-      "versioning": {
-        "valid_from": "2025.1",
-        "valid_until": null,
-        "deprecated": false,
-        "superseded_by": null,
-        "version_notes": []
-      },
-      "rich_metadata": {
-        "keywords": ["wave picking", "waveless", "order fulfillment"],
-        "question_type": "DOES",
-        "source_type": "rfp_historical",
-        "source_id": "ACME_2024_WMS_RFP.xlsx",
-        "scope_confidence": 0.95,
-        "auto_classified": false
-      },
-      "search_blob": "DOMAIN: wms | SCOPE: product_specific || CAT: functional / core_process || Q: Does Blue Yonder WMS support wave-based picking? || VARIANTS: Can Blue Yonder WMS do wave picking? | What picking strategies does WMS support? || TAGS: picking, wave, fulfillment || A: Yes, Blue Yonder WMS supports wave-based picking...",
-      "last_updated": "2026-02-19",
-      "created_date": "2026-02-19"
-    }
-  ]
+  "example": {
+    "id": "NET-FUNC-0001",
+    "question": "Does the platform provide real-time visibility of shipment status across carriers?",
+    "answer": "Blue Yonder Command Center provides end-to-end visibility across all transport modes with real-time tracking via carrier integrations, EDI, and IoT sensors.",
+    "question_variants": [
+      "How do you track shipments in real-time?",
+      "What shipment visibility capabilities does BY offer?"
+    ],
+    "solution_codes": ["network"],
+    "family_code": "network",
+    "category": "functional",
+    "subcategory": "transport_visibility",
+    "tags": ["visibility", "tracking", "real-time", "carrier"],
+    "confidence": "draft",
+    "source_rfps": ["ARC-0001"],
+    "last_updated": "2026-02-19",
+    "cloud_native_only": true,
+    "notes": ""
+  }
 }

@@ -212,116 +212,149 @@ XAI_API_KEY=...          # Grok
 
 **Auto-classification:** `kb_transform_knowledge.py` uses keyword matching with confidence scores.
 
-## KB Expansion — Phase 1 Infrastructure
+## KB Expansion — 3-Stage Extraction Pipeline
 
 ### Overview
 
-The KB currently covers Planning (806 entries), WMS (38), and AIML (54). Phase 1 expands to all
-Blue Yonder product families by extracting Q&A pairs from historical RFP Excel files.
+The KB currently covers Planning (807), WMS (38), AIML (54). Phase 1 expands all other families
+by processing historical RFP Excel files. Phase 2 finds gaps in the Planning KB.
+
+**Mode is auto-detected** from `family_config.json` `phase` field:
+- Phase 1 families (WMS, Logistics, etc.) → **CREATE mode** — extract and build from scratch
+- Phase 2 families (Planning) → **IMPROVE mode** — find gaps, flag better answers for review
 
 ### Folder Structure
 
 ```
 data/kb/
-├── historical/          # Drop historical RFP .xlsx files here (gitignored)
-│   ├── planning/        # Phase 2 (improve mode)
-│   ├── wms/
-│   ├── logistics/
-│   ├── scpo/
-│   ├── catman/
-│   ├── workforce/
-│   ├── commerce/
-│   ├── flexis/
-│   ├── network/
-│   ├── doddle/
-│   └── aiml/
-├── staging/             # Human review queue (gitignored)
-│   └── {family}_improvements.jsonl
-└── schema/              # Versioned schemas (committed)
+├── historical/
+│   └── {family}/
+│       ├── inbox/       <- Drop .xlsx files here (gitignored by extension)
+│       └── processing/  <- Temp while processing (gitignored)
+├── archive/             <- Central archive (NOT per-family)
+│   ├── archive_registry.json  <- COMMITTED (no customer data)
+│   ├── files/           <- Original Excel files renamed (gitignored)
+│   └── extractions/     <- Structure + extraction JSONL (gitignored)
+├── staging/             <- Review queue: {family}_improvements.jsonl
+├── canonical/           <- Final KB files (ChromaDB source)
+└── schema/
     ├── family_config.json
     └── canonical_entry_v2.json
 ```
 
-### Extraction Workflow
+### 3-Stage Pipeline
 
-**Step 1: Drop historical RFP files**
 ```
-data/kb/historical/wms/  ← copy .xlsx files here
+Stage 1 — Structure Analysis (per file):
+  a. prescan_excel(): reads first 20 rows per sheet with openpyxl (zero LLM cost)
+  b. collect_metadata_interactive(): prompts for client/industry/date/region/type
+     Auto-detects from filename; Rob confirms or overrides
+  c. analyze_structure_llm(): one gemini-flash call detects Q/A/category columns
+  d. confirm_structure(): prints layout summary, Rob confirms before proceeding
+
+Stage 2 — Extraction:
+  extract_pairs_from_workbook(): uses detected column map, handles category header
+  rows, tracks source_sheet and source_row for traceability
+
+Stage 3 — Classification + Interactive Review:
+  classify_pairs_batch(): gemini-flash classifies 15 pairs per call
+    (category, subcategory, tags, solution_codes, question_variants, quality)
+  CREATE mode review: Y/N/E/A/S/Q for each pair
+  IMPROVE mode review: BGE cosine similarity vs existing (threshold 0.80)
+    - K (keep) / R (replace) / M (merge/edit) / N (add as new) for matches
+
+File flow:
+  inbox/file.xlsx -> processing/ -> canonical (appended) -> archive/ -> inbox cleaned
 ```
 
-**Step 2: Check status**
+### Commands
+
 ```bash
+# Check what's in inbox and what's been archived
 python src/kb_stats.py
-```
 
-**Step 3: Extract (CREATE mode — families with 0 entries)**
-```bash
-python src/kb_extract_historical.py --family wms --mode create --model gemini
-# Always dry-run first:
-python src/kb_extract_historical.py --family wms --mode create --model gemini --dry-run
-```
+# Process all files in a family's inbox (auto-detects mode from phase)
+python src/kb_extract_historical.py --family wms
+python src/kb_extract_historical.py --family wms --model gemini-flash
 
-**Step 4: Find gaps (IMPROVE mode — Planning with 806 entries)**
-```bash
-python src/kb_extract_historical.py --family planning --mode improve --model gemini
-# New entries → auto-added to Planning canonical
-# Better answers → staging/planning_improvements.jsonl for human review
-```
+# Process a specific file
+python src/kb_extract_historical.py --family wms --file "path/to/file.xlsx"
 
-**Step 5: Re-merge and re-index**
-```bash
-python src/kb_merge_canonical.py
-python src/kb_embed_chroma.py
+# Planning (auto IMPROVE mode — finds gaps against existing 807 entries)
+python src/kb_extract_historical.py --family planning
+
+# Resume interrupted review session
+python src/kb_extract_historical.py --family wms --resume
+
+# Re-merge and re-index after extraction
+python src/kb_merge_canonical.py && python src/kb_embed_chroma.py
+
+# Search the archive
+python src/kb_archive_search.py --list
+python src/kb_archive_search.py --client "Acme"
+python src/kb_archive_search.py --family wms
+python src/kb_archive_search.py --from 2023-Q1 --to 2024-Q4
+python src/kb_archive_search.py --id ARC-0001
 ```
 
 ### KB Entry Schema v2
 
-v2 entries are a superset of v1 — all new fields have defaults, so existing entries are still valid.
+v2 is a **superset of v1** — all new fields have defaults, existing entries work unchanged.
 
-Key new fields vs v1:
-- `id`: structured format `{PREFIX}-{CAT}-{NNNN}` e.g. `WMS-FUNC-0042`
-- `family_code`: explicit product family (for ChromaDB filtering)
+New fields vs v1:
+- `id` / `kb_id`: structured format `{PREFIX}-{CAT}-{NNNN}` e.g. `WMS-FUNC-0042`
+- `family_code`: product family (for ChromaDB filtered queries)
 - `question_variants`: alternative phrasings for better RAG recall
 - `solution_codes`: which specific solutions within the family this applies to
 - `tags`: keyword array for search boosting
 - `confidence`: `verified | draft | needs_review | outdated`
-- `source_rfps`: traceability to source RFP files
-- `cloud_native_only`: flag for SaaS-only features
+- `source_rfps`: archive IDs that contributed this answer
+- `cloud_native_only`: flag for SaaS-only answers
+- `notes`: internal notes (not used in RAG)
 
-Schema file: `data/kb/schema/canonical_entry_v2.json`
+Schema: `data/kb/schema/canonical_entry_v2.json`
 Family config: `data/kb/schema/family_config.json`
 
-### Phase Tracking
+### Archive Registry
 
-| Phase | Mode | Description |
-|-------|------|-------------|
-| Phase 1 | CREATE | New families (0 entries) — extract from historicals |
-| Phase 2 | IMPROVE | Planning (806 entries) — find gaps, flag improvements |
+`data/kb/archive/archive_registry.json` is committed. It records:
+- `archive_id`: ARC-0001, ARC-0002, …
+- `client`, `client_industry`, `family_code`, `rfp_type`, `date_estimated`, `region`
+- `extraction_stats`: sheets_processed, total_qa_extracted, accepted, categories breakdown
+- `structure_file` and `extraction_file`: paths within archive/
+
+This registry is the foundation for future cross-family analysis and model training.
 
 ## Current Tasks
 
-- [ ] Drop historical RFP Excel files into `data/kb/historical/{family}/` folders
-- [ ] Run `kb_extract_historical.py --mode create` for Phase 1 families
-- [ ] Run `kb_extract_historical.py --mode improve` for Planning (Phase 2)
-- [ ] Review `staging/planning_improvements.jsonl` and apply best improvements
+- [ ] Drop historical RFP Excel files into `data/kb/historical/{family}/inbox/`
+- [ ] Run `kb_extract_historical.py` for Phase 1 families (WMS, Logistics, SCPO, etc.)
+- [ ] Run `kb_extract_historical.py --family planning` for Phase 2 (find gaps)
+- [ ] Review `staging/planning_improvements.jsonl` and apply best improvements manually
 - [ ] Create `kb_deprecate.py` CLI tool for marking old entries
 - [ ] Add `--solution wms|planning|catman` flag to batch processor
 - [ ] Update `kb_embed_chroma.py` to filter deprecated entries
 
 ## Recent Changes
 
-### 2026-02-19
-- **FEATURE:** KB Expansion Phase 1 Infrastructure
-  - Created `data/kb/historical/{family}/` folders (11 product families)
-  - Created `data/kb/staging/` for human review queue
-  - Created `data/kb/schema/family_config.json` — product family → solution codes / ID prefix / phase
-  - Created `data/kb/schema/canonical_entry_v2.json` — JSON Schema for v2 KB entries (superset of v1)
-  - Built `src/kb_extract_historical.py` — CREATE and IMPROVE modes for Excel extraction
-    - CREATE: scans historical/, detects column structure via LLM, extracts Q&A, classifies, deduplicates, appends to canonical
-    - IMPROVE: embeds historical Q&A, checks cosine similarity against existing (threshold 0.80), new entries → canonical, better answers → staging/
-  - Built `src/kb_stats.py` — dashboard showing entry counts per family + historical file counts
-  - Updated `.gitignore` to block historical RFP files and staging dir
-  - Updated `CLAUDE.md` with KB expansion workflow
+### 2026-02-19 (v2 — 3-stage pipeline)
+- **FEATURE:** KB Expansion 3-Stage Interactive Pipeline
+  - Restructured `data/kb/historical/{family}/` → added `inbox/` and `processing/` subfolders
+  - Created central `data/kb/archive/` with `files/`, `extractions/` (both gitignored)
+    and `archive_registry.json` (committed — no customer data)
+  - **Rewrote** `src/kb_extract_historical.py` as full 3-stage pipeline:
+    - Stage 1: `prescan_excel()` (zero LLM cost) + `collect_metadata_interactive()` +
+      `analyze_structure_llm()` (one gemini-flash call per file) + `confirm_structure()`
+    - Stage 2: `extract_pairs_from_workbook()` using detected column map, handles category headers
+    - Stage 3: `classify_pairs_batch()` (15/call, gemini-flash) + interactive terminal review
+      with Y/N/E/A/S/Q for CREATE mode; K/R/M/N comparison for IMPROVE mode
+    - `--resume` flag: saves/loads `staging/{family}_session.json`
+    - Archive: moves file + writes structure.json + extracted.jsonl + updates registry
+  - **Updated** `src/kb_stats.py` — shows Inbox, Archived columns + archive summary
+  - **Added** `src/kb_archive_search.py` — query archive_registry.json
+    (--list, --client, --family, --from/--to, --id, --json)
+  - Updated `.gitignore` for archive/files/, archive/extractions/, staging/*.jsonl
+  - ASCII-only terminal output throughout (Windows cp1252 compatible)
 
 ### 2026-01-03
 - **REFACTOR:** Complete project restructure for clean architecture

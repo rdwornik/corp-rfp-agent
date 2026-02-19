@@ -1,31 +1,32 @@
 """
 kb_stats.py
-Dashboard showing KB entry counts per family and historical file counts.
+Dashboard showing KB entry counts per family + archive stats.
 
 Usage:
   python src/kb_stats.py
-  python src/kb_stats.py --json        # machine-readable output
-  python src/kb_stats.py --family wms  # show only one family
+  python src/kb_stats.py --json        # machine-readable
+  python src/kb_stats.py --family wms  # single family
 """
 
 import json
 import argparse
 from pathlib import Path
+from collections import Counter
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-
+PROJECT_ROOT  = Path(__file__).resolve().parents[1]
 CANONICAL_DIR = PROJECT_ROOT / "data/kb/canonical"
-HISTORICAL_DIR = PROJECT_ROOT / "data/kb/historical"
-SCHEMA_DIR = PROJECT_ROOT / "data/kb/schema"
+HISTORICAL_DIR= PROJECT_ROOT / "data/kb/historical"
+SCHEMA_DIR    = PROJECT_ROOT / "data/kb/schema"
 FAMILY_CONFIG = SCHEMA_DIR / "family_config.json"
+REGISTRY_PATH = PROJECT_ROOT / "data/kb/archive/archive_registry.json"
 
 ORDERED_FAMILIES = [
-    "planning", "wms", "logistics", "scpo", "catman",
-    "workforce", "commerce", "flexis", "network", "doddle", "aiml",
+    "planning","wms","logistics","scpo","catman",
+    "workforce","commerce","flexis","network","doddle","aiml",
 ]
 
-PHASE_LABELS = {1: "Phase 1 - create mode", 2: "Phase 2 - improve mode"}
 
+# ── helpers ──────────────────────────────────────────────────
 
 def load_family_config() -> dict:
     if not FAMILY_CONFIG.exists():
@@ -34,155 +35,187 @@ def load_family_config() -> dict:
         return json.load(f).get("families", {})
 
 
-def count_canonical_entries(canonical_file: str) -> int:
-    path = CANONICAL_DIR / canonical_file
-    if not path.exists():
+def count_canonical(canon_file: str) -> int:
+    p = CANONICAL_DIR / canon_file
+    if not p.exists():
         return 0
     try:
-        with open(path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        return len(data) if isinstance(data, list) else 0
-    except (json.JSONDecodeError, OSError):
-        return -1  # error indicator
+        data = json.loads(p.read_text(encoding="utf-8"))
+        return len(data) if isinstance(data, list) else -1
+    except Exception:
+        return -1
 
 
-def count_historical_files(family_key: str) -> int:
-    folder = HISTORICAL_DIR / family_key
-    if not folder.exists():
+def count_inbox(family_key: str) -> int:
+    inbox = HISTORICAL_DIR / family_key / "inbox"
+    if not inbox.exists():
         return 0
-    files = list(folder.glob("*.xlsx")) + list(folder.glob("*.xls"))
-    # Exclude temp files
-    files = [f for f in files if not f.name.startswith("~$")]
-    return len(files)
+    files = list(inbox.glob("*.xlsx")) + list(inbox.glob("*.xls"))
+    return len([f for f in files if not f.name.startswith("~$")])
 
 
-def count_unified_entries() -> int:
-    unified = CANONICAL_DIR / "RFP_Database_UNIFIED_CANONICAL.json"
-    if not unified.exists():
+def count_unified() -> int:
+    p = CANONICAL_DIR / "RFP_Database_UNIFIED_CANONICAL.json"
+    if not p.exists():
         return 0
     try:
-        with open(unified, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        return len(data) if isinstance(data, list) else 0
-    except (json.JSONDecodeError, OSError):
+        return len(json.loads(p.read_text(encoding="utf-8")))
+    except Exception:
         return 0
 
+
+def load_registry() -> dict:
+    if not REGISTRY_PATH.exists():
+        return {"entries": []}
+    with open(REGISTRY_PATH, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def archive_stats(registry: dict) -> dict:
+    entries = registry.get("entries", [])
+    total_files  = len(entries)
+    total_qa     = sum(e.get("extraction_stats", {}).get("accepted", 0) for e in entries)
+    clients      = {e.get("client","") for e in entries if e.get("client")}
+    by_family    = Counter(e.get("family_code","?") for e in entries)
+    cat_totals   = Counter()
+    for e in entries:
+        for cat, n in e.get("extraction_stats",{}).get("categories",{}).items():
+            cat_totals[cat] += n
+    return {
+        "total_files":  total_files,
+        "total_qa":     total_qa,
+        "unique_clients": len(clients),
+        "by_family":    dict(by_family),
+        "categories":   dict(cat_totals),
+    }
+
+
+# ── per-family stats ─────────────────────────────────────────
 
 def get_stats(family_filter: str = None) -> dict:
-    config = load_family_config()
-    stats = {}
+    config  = load_family_config()
+    registry = load_registry()
+    arc_by_fam = Counter(e.get("family_code") for e in registry.get("entries",[]))
+    stats   = {}
 
-    families_to_check = [family_filter] if family_filter else ORDERED_FAMILIES
-
-    for family_key in families_to_check:
-        family = config.get(family_key, {})
-        canonical_file = family.get("canonical_file", f"RFP_Database_{family_key.title()}_CANONICAL.json")
-        entry_count = count_canonical_entries(canonical_file)
-        hist_count = count_historical_files(family_key)
-        phase = family.get("phase", 1)
-
-        stats[family_key] = {
-            "display_name": family.get("display_name", family_key),
-            "canonical_file": canonical_file,
-            "entry_count": entry_count,
-            "historical_files": hist_count,
-            "phase": phase,
-            "phase_label": PHASE_LABELS.get(phase, f"Phase {phase}"),
-            "id_prefix": family.get("id_prefix", "???"),
-            "cloud_native": family.get("cloud_native", True),
+    families = [family_filter] if family_filter else ORDERED_FAMILIES
+    for key in families:
+        fam    = config.get(key, {})
+        cfile  = fam.get("canonical_file",
+                          f"RFP_Database_{key.title()}_CANONICAL.json")
+        stats[key] = {
+            "display_name":  fam.get("display_name", key),
+            "canonical_file": cfile,
+            "entry_count":   count_canonical(cfile),
+            "inbox_files":   count_inbox(key),
+            "archived_files":arc_by_fam.get(key, 0),
+            "phase":         fam.get("phase", 1),
+            "id_prefix":     fam.get("id_prefix", "???"),
+            "cloud_native":  fam.get("cloud_native", True),
         }
-
     return stats
 
 
-def print_dashboard(stats: dict, show_unified: bool = True):
+# ── display ──────────────────────────────────────────────────
+
+def print_dashboard(stats: dict, registry: dict, show_totals: bool = True) -> None:
+    arc = archive_stats(registry)
+
     print()
-    print("KB Statistics")
-    print("=" * 60)
+    print(" RFP Answer Engine - KB Stats")
+    print("=" * 70)
+    hdr = f"  {'Family':<28} {'Entries':>8} {'Phase':>6} {'Inbox':>6} {'Archived':>9}"
+    print(hdr)
+    print("  " + "-" * 66)
 
-    name_width = 28
-    count_width = 8
-    hist_width = 10
+    total_entries = 0
+    for key, d in stats.items():
+        cnt   = d["entry_count"]
+        phase = d["phase"]
+        inbox = d["inbox_files"]
+        arc_n = d["archived_files"]
+        name  = f"{d['display_name']} ({d['id_prefix']})"
 
-    header = (
-        f"  {'Family':<{name_width}} {'Entries':>{count_width}} "
-        f"{'Hist.Files':>{hist_width}}  {'Mode'}"
-    )
-    print(header)
-    print("  " + "-" * (len(header) - 2))
+        cnt_s  = str(cnt)  if cnt  >= 0 else "ERR"
+        inbox_s= str(inbox) if inbox else "-"
+        arc_s  = str(arc_n) if arc_n else "-"
+        phase_s= str(phase)
 
-    total_family_entries = 0
-    for family_key, data in stats.items():
-        count = data["entry_count"]
-        hist = data["historical_files"]
-        display = f"{data['display_name']} ({data['id_prefix']})"
-        phase_label = data["phase_label"]
+        alert = ""
+        if inbox > 0:
+            alert = f"  <- {inbox} file(s) ready in inbox"
 
-        count_str = str(count) if count >= 0 else "ERROR"
-        hist_str = str(hist) if hist > 0 else "-"
-        hist_note = f" [{hist} file(s) ready]" if hist > 0 else ""
+        print(f"  {name:<28} {cnt_s:>8} {phase_s:>6} {inbox_s:>6} {arc_s:>9}{alert}")
+        if cnt > 0:
+            total_entries += cnt
 
-        print(
-            f"  {display:<{name_width}} {count_str:>{count_width}} "
-            f"{hist_str:>{hist_width}}  {phase_label}{hist_note}"
-        )
-        if count > 0:
-            total_family_entries += count
-
-    if show_unified and len(stats) == len(ORDERED_FAMILIES):
+    if show_totals:
         print()
-        unified_count = count_unified_entries()
-        print("  " + "-" * 58)
-        print(f"  {'Sum (family canonicals)':<{name_width}} {total_family_entries:>{count_width}}")
-        if unified_count:
-            print(f"  {'UNIFIED (merged)':<{name_width}} {unified_count:>{count_width}}  (run kb_merge_canonical.py to refresh)")
-        print()
+        print("  " + "-" * 66)
 
-        # Gaps summary
+        # Sum row
+        unified = count_unified()
+        print(f"  {'Sum (family canonicals)':<28} {total_entries:>8}")
+        if unified:
+            print(f"  {'UNIFIED (merged)':<28} {unified:>8}  "
+                  f"(refresh: kb_merge_canonical.py)")
+
+        print()
+        print("=" * 70)
+        print(f"  Archive: {arc['total_files']} files | "
+              f"{arc['total_qa']} Q&A extracted | "
+              f"{arc['unique_clients']} clients")
+
+        if arc["categories"]:
+            cats = arc["categories"]
+            cat_str = "  ".join(f"{k}:{v}" for k, v in sorted(cats.items()))
+            print(f"  Categories: {cat_str}")
+
         gaps = [k for k, v in stats.items() if v["entry_count"] == 0]
-        ready = [k for k, v in stats.items() if v["historical_files"] > 0 and v["entry_count"] == 0]
+        ready= [k for k, v in stats.items()
+                if v["inbox_files"] > 0 and v["entry_count"] == 0]
 
         if gaps:
-            print(f"  Families with 0 entries:  {', '.join(gaps)}")
+            print()
+            print(f"  Families with 0 entries: {', '.join(gaps)}")
         if ready:
-            print(f"  Ready to extract (have historical files):  {', '.join(ready)}")
-            print(f"  Run: python src/kb_extract_historical.py --family <name> --mode create --model gemini")
+            print(f"  Ready to extract:        {', '.join(ready)}")
+            print(f"  Run: python src/kb_extract_historical.py --family <name>")
         print()
 
 
-def print_json(stats: dict):
+def print_json(stats: dict, registry: dict) -> None:
+    arc = archive_stats(registry)
     output = {
         "families": stats,
-        "unified_entries": count_unified_entries(),
+        "unified_entries": count_unified(),
+        "archive": arc,
         "summary": {
             "total_family_entries": sum(
                 v["entry_count"] for v in stats.values() if v["entry_count"] > 0
             ),
-            "families_with_entries": sum(
-                1 for v in stats.values() if v["entry_count"] > 0
-            ),
-            "families_with_historical_files": sum(
-                1 for v in stats.values() if v["historical_files"] > 0
-            ),
+            "families_with_entries":       sum(1 for v in stats.values() if v["entry_count"] > 0),
+            "families_with_inbox_files":   sum(1 for v in stats.values() if v["inbox_files"] > 0),
         },
     }
     print(json.dumps(output, indent=2))
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Show KB entry counts and file status.")
-    parser.add_argument("--json", action="store_true", help="Output machine-readable JSON")
-    parser.add_argument("--family", default=None,
-                        choices=ORDERED_FAMILIES,
-                        help="Show stats for a single family only")
+# ── main ─────────────────────────────────────────────────────
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="KB entry counts and archive stats.")
+    parser.add_argument("--json",   action="store_true")
+    parser.add_argument("--family", default=None, choices=ORDERED_FAMILIES)
     args = parser.parse_args()
 
-    stats = get_stats(args.family)
+    stats    = get_stats(args.family)
+    registry = load_registry()
 
     if args.json:
-        print_json(stats)
+        print_json(stats, registry)
     else:
-        print_dashboard(stats, show_unified=(args.family is None))
+        print_dashboard(stats, registry, show_totals=(args.family is None))
 
 
 if __name__ == "__main__":

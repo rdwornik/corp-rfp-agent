@@ -43,9 +43,19 @@ data/kb/historical/**/*.xlsx
 data/kb/historical/**/*.xls
 data/kb/historical/**/*.docx
 data/kb/historical/**/*.pdf
+data/kb/historical/**/processing/
 
-# --- KB staging (human review queue — not for version control) ---
-data/kb/staging/
+# --- KB staging (intermediate review files — not for version control) ---
+data/kb/staging/*.jsonl
+
+# --- Archive (confidential — actual RFP files and raw extractions) ---
+data/kb/archive/files/
+data/kb/archive/extractions/
+# Keep the registry — it contains no customer data (just metadata Rob controls)
+!data/kb/archive/archive_registry.json
+
+# --- Keep folder structure ---
+!**/.gitkeep
 
 # Legacy paths (in case of incomplete migration)
 input_rfp/

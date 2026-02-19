@@ -212,15 +212,116 @@ XAI_API_KEY=...          # Grok
 
 **Auto-classification:** `kb_transform_knowledge.py` uses keyword matching with confidence scores.
 
+## KB Expansion — Phase 1 Infrastructure
+
+### Overview
+
+The KB currently covers Planning (806 entries), WMS (38), and AIML (54). Phase 1 expands to all
+Blue Yonder product families by extracting Q&A pairs from historical RFP Excel files.
+
+### Folder Structure
+
+```
+data/kb/
+├── historical/          # Drop historical RFP .xlsx files here (gitignored)
+│   ├── planning/        # Phase 2 (improve mode)
+│   ├── wms/
+│   ├── logistics/
+│   ├── scpo/
+│   ├── catman/
+│   ├── workforce/
+│   ├── commerce/
+│   ├── flexis/
+│   ├── network/
+│   ├── doddle/
+│   └── aiml/
+├── staging/             # Human review queue (gitignored)
+│   └── {family}_improvements.jsonl
+└── schema/              # Versioned schemas (committed)
+    ├── family_config.json
+    └── canonical_entry_v2.json
+```
+
+### Extraction Workflow
+
+**Step 1: Drop historical RFP files**
+```
+data/kb/historical/wms/  ← copy .xlsx files here
+```
+
+**Step 2: Check status**
+```bash
+python src/kb_stats.py
+```
+
+**Step 3: Extract (CREATE mode — families with 0 entries)**
+```bash
+python src/kb_extract_historical.py --family wms --mode create --model gemini
+# Always dry-run first:
+python src/kb_extract_historical.py --family wms --mode create --model gemini --dry-run
+```
+
+**Step 4: Find gaps (IMPROVE mode — Planning with 806 entries)**
+```bash
+python src/kb_extract_historical.py --family planning --mode improve --model gemini
+# New entries → auto-added to Planning canonical
+# Better answers → staging/planning_improvements.jsonl for human review
+```
+
+**Step 5: Re-merge and re-index**
+```bash
+python src/kb_merge_canonical.py
+python src/kb_embed_chroma.py
+```
+
+### KB Entry Schema v2
+
+v2 entries are a superset of v1 — all new fields have defaults, so existing entries are still valid.
+
+Key new fields vs v1:
+- `id`: structured format `{PREFIX}-{CAT}-{NNNN}` e.g. `WMS-FUNC-0042`
+- `family_code`: explicit product family (for ChromaDB filtering)
+- `question_variants`: alternative phrasings for better RAG recall
+- `solution_codes`: which specific solutions within the family this applies to
+- `tags`: keyword array for search boosting
+- `confidence`: `verified | draft | needs_review | outdated`
+- `source_rfps`: traceability to source RFP files
+- `cloud_native_only`: flag for SaaS-only features
+
+Schema file: `data/kb/schema/canonical_entry_v2.json`
+Family config: `data/kb/schema/family_config.json`
+
+### Phase Tracking
+
+| Phase | Mode | Description |
+|-------|------|-------------|
+| Phase 1 | CREATE | New families (0 entries) — extract from historicals |
+| Phase 2 | IMPROVE | Planning (806 entries) — find gaps, flag improvements |
+
 ## Current Tasks
 
+- [ ] Drop historical RFP Excel files into `data/kb/historical/{family}/` folders
+- [ ] Run `kb_extract_historical.py --mode create` for Phase 1 families
+- [ ] Run `kb_extract_historical.py --mode improve` for Planning (Phase 2)
+- [ ] Review `staging/planning_improvements.jsonl` and apply best improvements
 - [ ] Create `kb_deprecate.py` CLI tool for marking old entries
 - [ ] Add `--solution wms|planning|catman` flag to batch processor
 - [ ] Update `kb_embed_chroma.py` to filter deprecated entries
-- [ ] Test WMS knowledge retrieval quality
-- [ ] Add more WMS knowledge from additional workshops
 
 ## Recent Changes
+
+### 2026-02-19
+- **FEATURE:** KB Expansion Phase 1 Infrastructure
+  - Created `data/kb/historical/{family}/` folders (11 product families)
+  - Created `data/kb/staging/` for human review queue
+  - Created `data/kb/schema/family_config.json` — product family → solution codes / ID prefix / phase
+  - Created `data/kb/schema/canonical_entry_v2.json` — JSON Schema for v2 KB entries (superset of v1)
+  - Built `src/kb_extract_historical.py` — CREATE and IMPROVE modes for Excel extraction
+    - CREATE: scans historical/, detects column structure via LLM, extracts Q&A, classifies, deduplicates, appends to canonical
+    - IMPROVE: embeds historical Q&A, checks cosine similarity against existing (threshold 0.80), new entries → canonical, better answers → staging/
+  - Built `src/kb_stats.py` — dashboard showing entry counts per family + historical file counts
+  - Updated `.gitignore` to block historical RFP files and staging dir
+  - Updated `CLAUDE.md` with KB expansion workflow
 
 ### 2026-01-03
 - **REFACTOR:** Complete project restructure for clean architecture

@@ -1,0 +1,213 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12",
+  "$id": "canonical_entry_v2",
+  "title": "RFP KB Canonical Entry v2",
+  "description": "Schema for knowledge base entries. v2 is a superset of v1 — all new fields have defaults so existing v1 entries remain valid.",
+  "type": "object",
+  "required": ["kb_id", "domain", "canonical_question", "canonical_answer"],
+  "properties": {
+
+    "kb_id": {
+      "type": "string",
+      "description": "Unique identifier. v1 format: 'kb_0001' or 'wms_0001'. v2 format: '{PREFIX}-{CAT}-{NNNN}' e.g. 'WMS-FUNC-0042'",
+      "examples": ["WMS-FUNC-0042", "PLN-TECH-0001", "LOG-INTG-0007"]
+    },
+
+    "id": {
+      "type": "string",
+      "description": "v2 canonical ID. Format: {PREFIX}-{CAT}-{NNNN}. Derived from family id_prefix + category code + sequence number.",
+      "examples": ["WMS-FUNC-0042", "PLN-ARCH-0001"],
+      "default": ""
+    },
+
+    "domain": {
+      "type": "string",
+      "description": "Product family domain key. Must match a key in family_config.json.",
+      "enum": ["planning", "wms", "logistics", "scpo", "catman", "workforce", "commerce", "flexis", "network", "doddle", "aiml"]
+    },
+
+    "family_code": {
+      "type": "string",
+      "description": "Same as domain. Used for ChromaDB filtered queries. Kept separate for future multi-family entries.",
+      "default": ""
+    },
+
+    "scope": {
+      "type": "string",
+      "description": "Whether this applies to the whole BY platform or is product-specific.",
+      "enum": ["platform", "product_specific"],
+      "default": "product_specific"
+    },
+
+    "category": {
+      "type": "string",
+      "description": "Top-level functional category.",
+      "enum": ["functional", "technical", "security", "deployment", "commercial", "general"],
+      "default": "functional"
+    },
+
+    "subcategory": {
+      "type": "string",
+      "description": "Finer-grained category. Free text — use consistent names within a domain.",
+      "examples": ["core_process", "architecture", "authentication", "integration", "reporting", "mobile", "configuration"],
+      "default": ""
+    },
+
+    "canonical_question": {
+      "type": "string",
+      "description": "The primary, clean phrasing of the question. Used as the main embedding text."
+    },
+
+    "question_variants": {
+      "type": "array",
+      "description": "Alternative phrasings of the same question. Improves RAG recall by covering different customer wordings.",
+      "items": {"type": "string"},
+      "default": []
+    },
+
+    "canonical_answer": {
+      "type": "string",
+      "description": "The authoritative answer. Should be self-contained — assume no other context."
+    },
+
+    "solution_codes": {
+      "type": "array",
+      "description": "Which specific solution codes this entry applies to. Subset of the family's solution_codes in family_config.json. Empty = applies to all solutions in the family.",
+      "items": {"type": "string"},
+      "examples": [["wms", "wms_native"], ["wms_labor"]],
+      "default": []
+    },
+
+    "tags": {
+      "type": "array",
+      "description": "Keyword tags for search boosting and filtering. Lowercase, no spaces.",
+      "items": {"type": "string"},
+      "examples": [["api", "rest", "integration"], ["mobile", "android", "rf-device"]],
+      "default": []
+    },
+
+    "confidence": {
+      "type": "string",
+      "description": "Quality/review status of this entry.",
+      "enum": ["verified", "draft", "needs_review", "outdated"],
+      "default": "draft"
+    },
+
+    "source_rfps": {
+      "type": "array",
+      "description": "Which RFP deals or files contributed to this answer. Used for traceability.",
+      "items": {"type": "string"},
+      "examples": [["ACME_2024_RFP.xlsx", "GlobalRetail_2025_RFP.xlsx"]],
+      "default": []
+    },
+
+    "cloud_native_only": {
+      "type": "boolean",
+      "description": "If true, this answer only applies to the cloud-native / SaaS deployment. On-premise customers should be flagged.",
+      "default": false
+    },
+
+    "versioning": {
+      "type": "object",
+      "description": "Product version applicability. Inherited from v1 schema.",
+      "properties": {
+        "valid_from": {"type": ["string", "null"], "default": null},
+        "valid_until": {"type": ["string", "null"], "default": null},
+        "deprecated": {"type": "boolean", "default": false},
+        "superseded_by": {"type": ["string", "null"], "default": null},
+        "version_notes": {"type": "array", "items": {"type": "string"}, "default": []}
+      },
+      "default": {
+        "valid_from": null,
+        "valid_until": null,
+        "deprecated": false,
+        "superseded_by": null,
+        "version_notes": []
+      }
+    },
+
+    "rich_metadata": {
+      "type": "object",
+      "description": "Extended metadata. Superset of v1 rich_metadata.",
+      "properties": {
+        "keywords": {"type": "array", "items": {"type": "string"}, "default": []},
+        "question_type": {
+          "type": "string",
+          "enum": ["WHAT", "HOW", "CAN", "DOES", "IS", "WHY", "WHERE", "WHEN", "WHO", "OTHER"],
+          "default": "WHAT"
+        },
+        "source_type": {
+          "type": "string",
+          "enum": ["rfp_historical", "video_workshop", "documentation", "manual", "unknown"],
+          "default": "rfp_historical"
+        },
+        "source_id": {"type": "string", "default": ""},
+        "scope_confidence": {"type": "number", "minimum": 0, "maximum": 1, "default": 0.5},
+        "auto_classified": {"type": "boolean", "default": true}
+      },
+      "default": {}
+    },
+
+    "search_blob": {
+      "type": "string",
+      "description": "Pre-built search string combining all searchable fields. Auto-generated — do not edit manually.",
+      "default": ""
+    },
+
+    "last_updated": {
+      "type": "string",
+      "description": "ISO date of last update.",
+      "format": "date",
+      "default": ""
+    },
+
+    "created_date": {
+      "type": "string",
+      "description": "ISO date when entry was created.",
+      "format": "date",
+      "default": ""
+    }
+  },
+
+  "examples": [
+    {
+      "kb_id": "WMS-FUNC-0001",
+      "id": "WMS-FUNC-0001",
+      "domain": "wms",
+      "family_code": "wms",
+      "scope": "product_specific",
+      "category": "functional",
+      "subcategory": "core_process",
+      "canonical_question": "Does Blue Yonder WMS support wave-based picking?",
+      "question_variants": [
+        "Can Blue Yonder WMS do wave picking?",
+        "What picking strategies does WMS support?",
+        "Is wave picking available in BY WMS?"
+      ],
+      "canonical_answer": "Yes, Blue Yonder WMS supports wave-based picking as well as waveless and dynamic picking strategies. Waves can be configured by order type, carrier, route, or other criteria.",
+      "solution_codes": ["wms", "wms_native"],
+      "tags": ["picking", "wave", "fulfillment", "order-management"],
+      "confidence": "verified",
+      "source_rfps": ["ACME_2024_WMS_RFP.xlsx"],
+      "cloud_native_only": false,
+      "versioning": {
+        "valid_from": "2025.1",
+        "valid_until": null,
+        "deprecated": false,
+        "superseded_by": null,
+        "version_notes": []
+      },
+      "rich_metadata": {
+        "keywords": ["wave picking", "waveless", "order fulfillment"],
+        "question_type": "DOES",
+        "source_type": "rfp_historical",
+        "source_id": "ACME_2024_WMS_RFP.xlsx",
+        "scope_confidence": 0.95,
+        "auto_classified": false
+      },
+      "search_blob": "DOMAIN: wms | SCOPE: product_specific || CAT: functional / core_process || Q: Does Blue Yonder WMS support wave-based picking? || VARIANTS: Can Blue Yonder WMS do wave picking? | What picking strategies does WMS support? || TAGS: picking, wave, fulfillment || A: Yes, Blue Yonder WMS supports wave-based picking...",
+      "last_updated": "2026-02-19",
+      "created_date": "2026-02-19"
+    }
+  ]
+}

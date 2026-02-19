@@ -38,6 +38,15 @@ logs/
 data/input/
 data/output/
 
+# --- KB historical RFPs (customer data — never commit) ---
+data/kb/historical/**/*.xlsx
+data/kb/historical/**/*.xls
+data/kb/historical/**/*.docx
+data/kb/historical/**/*.pdf
+
+# --- KB staging (human review queue — not for version control) ---
+data/kb/staging/
+
 # Legacy paths (in case of incomplete migration)
 input_rfp/
 input_rfp_test/

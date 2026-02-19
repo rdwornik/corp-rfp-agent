@@ -1,0 +1,92 @@
+{
+  "families": {
+    "planning": {
+      "display_name": "Cognitive Planning",
+      "solution_codes": ["planning", "planning_ibp", "planning_pps"],
+      "canonical_file": "RFP_Database_Cognitive_Planning_CANONICAL.json",
+      "id_prefix": "PLN",
+      "cloud_native": true,
+      "phase": 2
+    },
+    "wms": {
+      "display_name": "Warehouse Management",
+      "solution_codes": ["wms", "wms_native", "wms_labor", "wms_tasking", "wms_billing", "wms_robotics"],
+      "canonical_file": "RFP_Database_WMS_CANONICAL.json",
+      "id_prefix": "WMS",
+      "cloud_native": true,
+      "phase": 1
+    },
+    "logistics": {
+      "display_name": "Logistics (TMS)",
+      "solution_codes": ["logistics", "logistics_ba", "logistics_modeling", "logistics_procurement", "logistics_fom", "logistics_load", "logistics_to_tr", "logistics_carrier"],
+      "canonical_file": "RFP_Database_Logistics_CANONICAL.json",
+      "id_prefix": "LOG",
+      "cloud_native": true,
+      "phase": 1
+    },
+    "scpo": {
+      "display_name": "Supply Chain Planning and Optimization (SCPO)",
+      "solution_codes": ["scp", "scp_promo_mgmt", "scp_promo_opt", "scp_sequencing"],
+      "canonical_file": "RFP_Database_SCPO_CANONICAL.json",
+      "id_prefix": "SCPO",
+      "cloud_native": true,
+      "phase": 1
+    },
+    "catman": {
+      "display_name": "Category Management",
+      "solution_codes": ["catman", "catman_assortment", "catman_space"],
+      "canonical_file": "RFP_Database_CatMan_CANONICAL.json",
+      "id_prefix": "CAT",
+      "cloud_native": false,
+      "phase": 1
+    },
+    "workforce": {
+      "display_name": "Workforce Management",
+      "solution_codes": ["workforce", "workforce_alf"],
+      "canonical_file": "RFP_Database_Workforce_CANONICAL.json",
+      "id_prefix": "WFM",
+      "cloud_native": true,
+      "phase": 1
+    },
+    "commerce": {
+      "display_name": "Commerce",
+      "solution_codes": ["commerce", "commerce_orders"],
+      "canonical_file": "RFP_Database_Commerce_CANONICAL.json",
+      "id_prefix": "COM",
+      "cloud_native": true,
+      "phase": 1
+    },
+    "flexis": {
+      "display_name": "Flexis",
+      "solution_codes": ["flexis", "flexis_slotting", "flexis_other"],
+      "canonical_file": "RFP_Database_Flexis_CANONICAL.json",
+      "id_prefix": "FLX",
+      "cloud_native": false,
+      "phase": 1
+    },
+    "network": {
+      "display_name": "Network",
+      "solution_codes": ["network"],
+      "canonical_file": "RFP_Database_Network_CANONICAL.json",
+      "id_prefix": "NET",
+      "cloud_native": true,
+      "phase": 1
+    },
+    "doddle": {
+      "display_name": "Doddle (Returns)",
+      "solution_codes": ["doddle"],
+      "canonical_file": "RFP_Database_Doddle_CANONICAL.json",
+      "id_prefix": "DDL",
+      "cloud_native": true,
+      "phase": 1
+    },
+    "aiml": {
+      "display_name": "AI/ML",
+      "solution_codes": ["aiml"],
+      "canonical_file": "RFP_Database_AIML_CANONICAL.json",
+      "id_prefix": "AIM",
+      "cloud_native": true,
+      "phase": 1
+    }
+  }
+}

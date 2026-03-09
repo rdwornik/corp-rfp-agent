@@ -1,7 +1,8 @@
-"""KB Reclassification -- migrate 6 categories to 4 RFP response teams.
+"""KB Reclassification -- migrate fine-grained categories to 4 RFP response teams.
 
-Step 1: Mechanical migration (no API) -- maps old categories to new.
-Step 2: LLM reclassification (Gemini Flash) -- reclassifies all entries.
+Step 1: Mechanical migration (no API) -- partial-match maps old categories to new.
+Step 2: LLM reclassification (Gemini Flash) -- reclassifies remaining entries.
+Step 3: Default fallback -- any entry still not in 4 valid categories -> technical.
 
 Usage:
     python src/kb_reclassify.py --migrate-only
@@ -11,7 +12,9 @@ Usage:
 
 import argparse
 import json
+import math
 import os
+import re
 import sys
 import time
 from pathlib import Path
@@ -20,22 +23,25 @@ from typing import Optional
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 CANONICAL_DIR = PROJECT_ROOT / "data" / "kb" / "canonical"
 
-# Step 1: Mechanical migration from 6 → 4 categories
-CATEGORY_MIGRATION = {
-    "security": "technical",
-    "Security & Compliance": "technical",
-    "deployment": "technical",
-    "Infrastructure": "technical",
-    "commercial": "customer_executive",
-    "general": "customer_executive",
-    # These stay as-is
-    "technical": "technical",
-    "functional": "functional",
-    "customer_executive": "customer_executive",
-    "consulting": "consulting",
-}
-
 VALID_CATEGORIES = {"technical", "functional", "customer_executive", "consulting"}
+
+# --- FIX 1: Partial-match term sets (ordered longest-first within each set) ---
+
+# Checked BEFORE consulting (order matters: "project management" -> consulting,
+# but "company overview" -> customer_executive)
+CUSTOMER_EXECUTIVE_TERMS = sorted([
+    "company overview", "references", "pricing", "licensing",
+    "financial", "commercial", "general", "case study", "case studies",
+    "partnership", "revenue", "vision", "roadmap",
+], key=len, reverse=True)
+
+CONSULTING_TERMS = sorted([
+    "project management", "change management", "data migration",
+    "implementation", "methodology", "training",
+    "go-live", "hypercare", "knowledge transfer",
+    "project plan", "timeline",
+], key=len, reverse=True)
+
 
 LLM_CLASSIFY_PROMPT = """Classify each RFP Q&A pair into the team that answers it.
 
@@ -74,41 +80,117 @@ def load_all_entries(canonical_dir: Path) -> list[dict]:
     return entries
 
 
+def _safe_category(val) -> str:
+    """Convert category value to safe string (handles NaN, None, float)."""
+    if val is None:
+        return ""
+    if isinstance(val, float):
+        if math.isnan(val):
+            return ""
+        return str(val)
+    s = str(val).strip()
+    return s
+
+
+def _classify_by_terms(cat_lower: str) -> Optional[str]:
+    """Partial-match classification. Returns category or None.
+
+    Checks customer_executive terms BEFORE consulting terms.
+    Within each set, longest terms match first to avoid false positives.
+    """
+    # Already a valid 4-category?
+    if cat_lower in VALID_CATEGORIES:
+        return cat_lower
+
+    # Customer executive terms (checked first)
+    for term in CUSTOMER_EXECUTIVE_TERMS:
+        if term in cat_lower:
+            return "customer_executive"
+
+    # Consulting terms
+    for term in CONSULTING_TERMS:
+        if term in cat_lower:
+            return "consulting"
+
+    # No match -- caller decides default
+    return None
+
+
 def mechanical_migrate(entries: list[dict]) -> dict:
-    """Apply mechanical category migration. Returns stats."""
+    """Apply mechanical category migration using partial-match. Returns stats."""
     stats = {"migrated": 0, "already_correct": 0, "unmapped": 0, "changes": []}
 
     for entry in entries:
         raw_cat = entry.get("category", "")
-        # Handle NaN/None/float from Excel-sourced data
         safe_cat = _safe_category(raw_cat)
-        old_cat = safe_cat.strip().lower()
+        cat_lower = safe_cat.lower()
 
-        # Try exact match first, then case-insensitive lookup
-        new_cat = CATEGORY_MIGRATION.get(old_cat)
-        if new_cat is None:
-            # Try original (non-lowered) value
-            new_cat = CATEGORY_MIGRATION.get(safe_cat)
-
-        if new_cat is None:
-            if old_cat in VALID_CATEGORIES:
-                stats["already_correct"] += 1
-            else:
-                stats["unmapped"] += 1
-            continue
-
-        if new_cat != old_cat:
+        if not cat_lower or cat_lower == "nan":
+            # Empty/NaN -> technical (safe default)
+            entry["category"] = "technical"
+            stats["migrated"] += 1
             stats["changes"].append({
                 "id": entry.get("kb_id", entry.get("id", "?")),
-                "old": entry.get("category", ""),
-                "new": new_cat,
+                "old": raw_cat, "new": "technical",
+            })
+            continue
+
+        new_cat = _classify_by_terms(cat_lower)
+
+        if new_cat is None:
+            # No term matched -> technical (safe default)
+            new_cat = "technical"
+
+        if new_cat == cat_lower:
+            stats["already_correct"] += 1
+        else:
+            stats["changes"].append({
+                "id": entry.get("kb_id", entry.get("id", "?")),
+                "old": safe_cat, "new": new_cat,
             })
             entry["category"] = new_cat
             stats["migrated"] += 1
-        else:
-            stats["already_correct"] += 1
 
     return stats
+
+
+# --- FIX 2: Robust JSON parsing with 3 strategies + retry ---
+
+def _parse_llm_json(text: str) -> list[dict]:
+    """Parse LLM response as JSON array with 3 fallback strategies."""
+    if not text:
+        return []
+
+    # Strategy 1: direct parse
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        pass
+
+    # Strategy 2: strip markdown code fences
+    cleaned = text.strip()
+    if cleaned.startswith("```"):
+        cleaned = cleaned.split("\n", 1)[1] if "\n" in cleaned else cleaned[3:]
+        if cleaned.endswith("```"):
+            cleaned = cleaned[:-3]
+        cleaned = cleaned.strip()
+        # Remove optional language tag like "json"
+        if cleaned.startswith("json"):
+            cleaned = cleaned[4:].strip()
+        try:
+            return json.loads(cleaned)
+        except json.JSONDecodeError:
+            pass
+
+    # Strategy 3: regex extract JSON array
+    match = re.search(r'\[.*\]', text, re.DOTALL)
+    if match:
+        try:
+            return json.loads(match.group(0))
+        except json.JSONDecodeError:
+            pass
+
+    raise json.JSONDecodeError("All 3 parse strategies failed", text, 0)
 
 
 def llm_reclassify_batch(batch: list[dict], model: str = "gemini-flash") -> list[dict]:
@@ -144,20 +226,14 @@ def llm_reclassify_batch(batch: list[dict], model: str = "gemini-flash") -> list
             config=types.GenerateContentConfig(temperature=0.1, max_output_tokens=4096),
         )
         text = response.text.strip() if response.text else "[]"
-        # Strip markdown code fences
-        if text.startswith("```"):
-            text = text.split("\n", 1)[1] if "\n" in text else text[3:]
-            if text.endswith("```"):
-                text = text[:-3]
-            text = text.strip()
-        return json.loads(text)
+        return _parse_llm_json(text)
 
     return retry_with_backoff(call_llm)
 
 
 def llm_reclassify(entries: list[dict], model: str, dry_run: bool, batch_size: int = 10) -> dict:
-    """Full LLM reclassification pipeline."""
-    stats = {"reclassified": 0, "unchanged": 0, "errors": 0, "changes": []}
+    """Full LLM reclassification pipeline with retry on failed batches."""
+    stats = {"reclassified": 0, "unchanged": 0, "errors": 0, "defaulted": 0, "changes": []}
     total_batches = (len(entries) + batch_size - 1) // batch_size
 
     for batch_idx in range(0, len(entries), batch_size):
@@ -165,38 +241,71 @@ def llm_reclassify(entries: list[dict], model: str, dry_run: bool, batch_size: i
         batch_num = batch_idx // batch_size + 1
         print(f"  [{batch_num}/{total_batches}] Classifying {len(batch)} entries...")
 
+        results = None
         try:
             results = llm_reclassify_batch(batch, model)
         except Exception as e:
-            print(f"    [ERROR] Batch {batch_num}: {e}")
-            stats["errors"] += len(batch)
-            continue
-
-        for result in results:
-            idx = result.get("index", -1)
-            new_cat = result.get("category", "")
-            confidence = result.get("confidence", 0.0)
-
-            if idx < 0 or idx >= len(batch):
-                continue
-            if new_cat not in VALID_CATEGORIES:
-                continue
-
-            entry = batch[idx]
-            old_cat = entry.get("category", "")
-
-            if new_cat != old_cat and confidence >= 0.7:
-                stats["changes"].append({
-                    "id": entry.get("kb_id", entry.get("id", "?")),
-                    "old": old_cat,
-                    "new": new_cat,
-                    "confidence": confidence,
-                })
-                if not dry_run:
-                    entry["category"] = new_cat
-                stats["reclassified"] += 1
+            # FIX 2: Retry failed batch with smaller batch size
+            if len(batch) > 5:
+                print(f"    [RETRY] Batch {batch_num} failed ({e}), retrying as 2 sub-batches...")
+                mid = len(batch) // 2
+                for sub_batch, offset in [(batch[:mid], 0), (batch[mid:], mid)]:
+                    try:
+                        sub_results = llm_reclassify_batch(sub_batch, model)
+                        # Adjust indices
+                        for r in sub_results:
+                            r["index"] = r.get("index", 0) + offset
+                        if results is None:
+                            results = []
+                        results.extend(sub_results)
+                    except Exception as e2:
+                        print(f"    [ERROR] Sub-batch failed: {e2}")
             else:
-                stats["unchanged"] += 1
+                print(f"    [ERROR] Batch {batch_num}: {e}")
+
+        # Track which indices got an LLM result
+        covered = set()
+        if results:
+            for result in results:
+                idx = result.get("index", -1)
+                new_cat = result.get("category", "")
+                confidence = result.get("confidence", 0.0)
+
+                if idx < 0 or idx >= len(batch):
+                    continue
+                if new_cat not in VALID_CATEGORIES:
+                    continue
+
+                covered.add(idx)
+                entry = batch[idx]
+                old_cat = entry.get("category", "")
+
+                if new_cat != old_cat and confidence >= 0.7:
+                    stats["changes"].append({
+                        "id": entry.get("kb_id", entry.get("id", "?")),
+                        "old": old_cat, "new": new_cat, "confidence": confidence,
+                    })
+                    if not dry_run:
+                        entry["category"] = new_cat
+                    stats["reclassified"] += 1
+                else:
+                    stats["unchanged"] += 1
+
+        # FIX 3: Default uncovered entries to "technical"
+        for idx in range(len(batch)):
+            if idx not in covered:
+                entry = batch[idx]
+                old_cat = entry.get("category", "")
+                if old_cat not in VALID_CATEGORIES:
+                    stats["changes"].append({
+                        "id": entry.get("kb_id", entry.get("id", "?")),
+                        "old": old_cat, "new": "technical", "confidence": 0.0,
+                    })
+                    if not dry_run:
+                        entry["category"] = "technical"
+                    stats["defaulted"] += 1
+                else:
+                    stats["unchanged"] += 1
 
         # Rate limit
         if batch_num < total_batches:
@@ -219,24 +328,11 @@ def save_entries(entries: list[dict], canonical_dir: Path) -> None:
         print(f"  [OK] {filename}: {len(file_entries)} entries")
 
 
-def _safe_category(val) -> str:
-    """Convert category value to safe string (handles NaN, None, float)."""
-    if val is None:
-        return "uncategorized"
-    if isinstance(val, float):
-        import math
-        if math.isnan(val):
-            return "uncategorized"
-        return str(val)
-    s = str(val).strip()
-    return s if s else "uncategorized"
-
-
 def print_category_stats(entries: list[dict]) -> None:
     """Print category distribution."""
     counts: dict[str, int] = {}
     for e in entries:
-        cat = _safe_category(e.get("category"))
+        cat = _safe_category(e.get("category")) or "uncategorized"
         counts[cat] = counts.get(cat, 0) + 1
 
     print("\nCategory distribution:")
@@ -248,7 +344,7 @@ def print_category_stats(entries: list[dict]) -> None:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="KB Reclassification -- 6 categories to 4")
+    parser = argparse.ArgumentParser(description="KB Reclassification -- categories to 4 teams")
     parser.add_argument("--migrate-only", action="store_true",
                         help="Only run mechanical migration (no LLM)")
     parser.add_argument("--dry-run", action="store_true",
@@ -270,28 +366,41 @@ def main():
     print(f"[INFO] Loaded {len(entries)} entries")
     print_category_stats(entries)
 
-    # Step 1: Mechanical migration
-    print("\n[Step 1] Mechanical migration...")
+    # Step 1: Mechanical migration (partial-match)
+    print("\n[Step 1] Mechanical migration (partial-match)...")
     mech_stats = mechanical_migrate(entries)
-    print(f"  Migrated: {mech_stats['migrated']}, Already correct: {mech_stats['already_correct']}, Unmapped: {mech_stats['unmapped']}")
-    if mech_stats["changes"][:5]:
-        for ch in mech_stats["changes"][:5]:
+    print(f"  Migrated: {mech_stats['migrated']}, Already correct: {mech_stats['already_correct']}")
+    if mech_stats["changes"][:10]:
+        for ch in mech_stats["changes"][:10]:
             print(f"    {ch['id']}: {ch['old']} -> {ch['new']}")
+        if len(mech_stats["changes"]) > 10:
+            print(f"    ... and {len(mech_stats['changes']) - 10} more")
+
+    print_category_stats(entries)
 
     # Step 2: LLM reclassification (unless --migrate-only)
     if not args.migrate_only:
         print(f"\n[Step 2] LLM reclassification ({args.model})...")
         llm_stats = llm_reclassify(entries, args.model, args.dry_run, args.batch_size)
-        print(f"  Reclassified: {llm_stats['reclassified']}, Unchanged: {llm_stats['unchanged']}, Errors: {llm_stats['errors']}")
+        print(f"  Reclassified: {llm_stats['reclassified']}, "
+              f"Unchanged: {llm_stats['unchanged']}, "
+              f"Defaulted: {llm_stats['defaulted']}, "
+              f"Errors: {llm_stats['errors']}")
 
     print_category_stats(entries)
+
+    # Verify: all entries should now have a valid category
+    invalid = [e for e in entries if e.get("category", "") not in VALID_CATEGORIES]
+    if invalid:
+        print(f"\n[WARNING] {len(invalid)} entries still have invalid categories")
+    else:
+        print(f"\n[OK] All {len(entries)} entries have valid categories")
 
     if not args.dry_run:
         print("\n[INFO] Saving entries...")
         save_entries(entries, canonical_dir)
         print("[DONE] Reclassification complete.")
     else:
-        # Remove _source_file keys to avoid polluting future loads
         for e in entries:
             e.pop("_source_file", None)
         print("[DRY RUN] No files changed.")

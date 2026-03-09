@@ -1,5 +1,4 @@
-"""KB extraction pipeline -- extract Q&A pairs from historical RFP files.
+"""KB extraction pipeline -- models for historical RFP processing.
 
-Structure ported in Phase 3. Full logic stays in src/kb_extract_historical.py
-until agents are ported (Phase 4-5).
+Full extraction logic lives in src/kb_extract_historical.py.
 """

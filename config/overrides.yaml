@@ -1,0 +1,43 @@
+# Answer overrides -- text replacements applied AFTER LLM generation.
+#
+# Each override corrects stale or incorrect text in generated answers.
+# Overrides are applied in order, top-to-bottom.
+#
+# Fields:
+#   id:          Unique identifier (for audit trail)
+#   description: Why this override exists
+#   find:        Text to find (case-insensitive by default)
+#   replace:     Replacement text
+#   whole_word:  Only match whole words (default: false)
+#   enabled:     Set false to disable without deleting (default: true)
+#   family:      Restrict to specific product family (optional)
+#   added:       Date added (for tracking)
+
+overrides:
+  - id: OVR-0001
+    description: "Splunk replaced by CrowdStrike for SIEM/logging"
+    find: "Splunk"
+    replace: "CrowdStrike"
+    whole_word: true
+    added: "2026-03-09"
+
+  - id: OVR-0002
+    description: "JDA Software rebranded to Blue Yonder"
+    find: "JDA Software"
+    replace: "Blue Yonder"
+    whole_word: false
+    added: "2026-03-09"
+
+  - id: OVR-0003
+    description: "JDA shorthand rebranded to Blue Yonder"
+    find: "JDA"
+    replace: "Blue Yonder"
+    whole_word: true
+    added: "2026-03-09"
+
+  - id: OVR-0004
+    description: "Luminate Platform renamed to Blue Yonder Platform"
+    find: "Luminate Platform"
+    replace: "Blue Yonder Platform"
+    whole_word: false
+    added: "2026-03-09"

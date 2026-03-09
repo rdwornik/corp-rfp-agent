@@ -1,0 +1,42 @@
+{
+  "description": "Golden fixture for Word agent acceptance tests",
+  "expected_tree": [
+    {
+      "title": "VIII. Architecture",
+      "level": 0,
+      "content_paragraphs": 0,
+      "children": [
+        {
+          "title": "1. Integration Capabilities",
+          "level": 1,
+          "content_paragraphs": 1,
+          "should_answer": true,
+          "children": [
+            {"title": "APIs", "level": 2, "content_paragraphs": 2, "should_answer": true, "children": []},
+            {"title": "File Exchanges", "level": 2, "content_paragraphs": 3, "should_answer": true, "children": []},
+            {"title": "Event Bus", "level": 2, "content_paragraphs": 2, "should_answer": true, "children": []}
+          ]
+        },
+        {
+          "title": "2. Security",
+          "level": 1,
+          "content_paragraphs": 2,
+          "has_table": true,
+          "table_should_survive": true,
+          "should_answer": true,
+          "children": []
+        },
+        {
+          "title": "3. Monitoring",
+          "level": 1,
+          "content_paragraphs": 2,
+          "has_existing_response": true,
+          "should_not_duplicate": true,
+          "should_answer": true,
+          "children": []
+        }
+      ]
+    }
+  ],
+  "total_answerable_sections": 6
+}

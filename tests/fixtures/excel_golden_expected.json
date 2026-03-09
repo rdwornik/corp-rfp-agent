@@ -1,0 +1,19 @@
+{
+  "description": "Golden fixture for Excel agent acceptance tests",
+  "header_row": 1,
+  "question_col": 3,
+  "question_col_letter": "C",
+  "answer_col": 5,
+  "answer_col_letter": "E",
+  "rows": [
+    {"row": 2, "type": "green_cell", "should_answer": true, "question": "The solution must provide REST API endpoints for data exchange."},
+    {"row": 3, "type": "green_cell", "should_answer": true, "question": "The solution must support SSO via SAML 2.0 and OpenID Connect."},
+    {"row": 4, "type": "already_answered", "should_answer": false, "existing_answer": "Blue Yonder supports cloud-native SaaS deployment on Microsoft Azure."},
+    {"row": 5, "type": "green_cell", "should_answer": true, "question": "The solution must support data encryption at rest and in transit."},
+    {"row": 6, "type": "already_answered", "should_answer": false, "existing_answer": "Yes, the platform is fully GDPR compliant with data residency options."},
+    {"row": 7, "type": "merged_cell", "should_answer": true, "merged_range": "C7:D7", "question": "The system must handle 10,000 concurrent users with sub-second response times."},
+    {"row": 8, "type": "formula_adjacent", "should_answer": true, "formula_cell": "F8", "formula": "=LEN(E8)", "question": "Describe horizontal scaling capabilities."},
+    {"row": 9, "type": "special_chars", "should_answer": true, "question": "Does the system support \"quotes\" & unicode: \u0142\u00f3\u015b\u0107?"},
+    {"row": 10, "type": "category_header", "should_answer": false, "text": "Security Requirements"}
+  ]
+}

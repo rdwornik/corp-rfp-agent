@@ -93,10 +93,10 @@ RFP_Database_Cognitive_Planning*.xlsx
 project_files.txt
 project_tree.txt
 
-# --- Test/debug scripts (temporary) ---
-test_*.py
-debug_*.py
-*_test.py
+# --- Test/debug scripts (temporary, root-level only) ---
+/test_*.py
+/debug_*.py
+/*_test.py
 
 # --- Ignore .github workflows in local dev ---
 .github/

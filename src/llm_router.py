@@ -32,13 +32,12 @@ DB_PATH = PROJECT_ROOT / "data/kb/chroma_store"
 COLLECTION_NAME = "rfp_knowledge_base"
 SYSTEM_PROMPT_PATH = PROJECT_ROOT / "prompts/rfp_system_prompt_universal.txt"
 PLATFORM_MATRIX_PATH = PROJECT_ROOT / "config/platform_matrix.json"
-PLATFORM_CONTEXT_PATH = PROJECT_ROOT / "prompts/platform_context.md"
 DEBUG = os.environ.get("DEBUG_RAG", "0") == "1"  # Set DEBUG_RAG=1 to enable debug logging
 
 # --- MODEL REGISTRY ---
 MODELS = {
     # Google
-    "gemini": {"name": "gemini-3-pro-preview", "provider": "google"},
+    "gemini": {"name": "gemini-3.1-pro-preview", "provider": "google"},
     "gemini-flash": {"name": "gemini-3-flash-preview", "provider": "google"},
     # Anthropic
     "claude": {"name": "claude-sonnet-4-5", "provider": "anthropic"},
@@ -81,22 +80,13 @@ def load_platform_matrix() -> dict:
         return json.load(f)
 
 
-def load_platform_context() -> str:
-    """Load platform context documentation."""
-    if not PLATFORM_CONTEXT_PATH.exists():
-        return ""
-    with open(PLATFORM_CONTEXT_PATH, "r", encoding="utf-8") as f:
-        return f.read()
-
-
-def build_solution_context(solution_code: str, platform_matrix: dict, platform_context: str) -> str:
+def build_solution_context(solution_code: str, platform_matrix: dict) -> str:
     """
     Build solution-specific context string for injection into system prompt.
 
     Args:
         solution_code: e.g. 'wms', 'wms_native', 'planning'
         platform_matrix: Loaded platform_matrix.json
-        platform_context: Loaded platform_context.md content
 
     Returns:
         Formatted context string for injection
@@ -216,8 +206,7 @@ class LLMRouter:
 
         if solution and solution not in PLANNING_SOLUTIONS:
             platform_matrix = load_platform_matrix()
-            platform_context = load_platform_context()
-            self.solution_context = build_solution_context(solution, platform_matrix, platform_context)
+            self.solution_context = build_solution_context(solution, platform_matrix)
             if self.solution_context:
                 solution_data = platform_matrix.get("solutions", {}).get(solution, {})
                 display_name = solution_data.get("display_name", solution)

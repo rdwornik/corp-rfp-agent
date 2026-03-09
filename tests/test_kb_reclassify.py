@@ -94,6 +94,22 @@ def test_mechanical_migration_handles_missing_category():
     assert stats["unmapped"] == 1
 
 
+def test_mechanical_migration_handles_nan_category():
+    """Entry with NaN float category doesn't crash."""
+    entries = [{"canonical_question": "Q", "canonical_answer": "A",
+                "category": float("nan"), "_source_file": "t.json"}]
+    stats = mechanical_migrate(entries)
+    assert stats["unmapped"] == 1
+
+
+def test_mechanical_migration_handles_none_category():
+    """Entry with None category doesn't crash."""
+    entries = [{"canonical_question": "Q", "canonical_answer": "A",
+                "category": None, "_source_file": "t.json"}]
+    stats = mechanical_migrate(entries)
+    assert stats["unmapped"] == 1
+
+
 def test_category_stats_no_crash(capsys):
     """print_category_stats runs without error."""
     entries = [
@@ -105,3 +121,15 @@ def test_category_stats_no_crash(capsys):
     captured = capsys.readouterr()
     assert "technical" in captured.out
     assert "functional" in captured.out
+
+
+def test_category_stats_handles_nan(capsys):
+    """print_category_stats handles NaN/None categories."""
+    entries = [
+        _make_entry("technical"),
+        {"canonical_question": "Q", "canonical_answer": "A", "category": float("nan")},
+        {"canonical_question": "Q", "canonical_answer": "A", "category": None},
+    ]
+    print_category_stats(entries)
+    captured = capsys.readouterr()
+    assert "uncategorized" in captured.out

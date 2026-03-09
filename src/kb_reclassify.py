@@ -79,13 +79,16 @@ def mechanical_migrate(entries: list[dict]) -> dict:
     stats = {"migrated": 0, "already_correct": 0, "unmapped": 0, "changes": []}
 
     for entry in entries:
-        old_cat = entry.get("category", "").strip().lower()
+        raw_cat = entry.get("category", "")
+        # Handle NaN/None/float from Excel-sourced data
+        safe_cat = _safe_category(raw_cat)
+        old_cat = safe_cat.strip().lower()
 
         # Try exact match first, then case-insensitive lookup
         new_cat = CATEGORY_MIGRATION.get(old_cat)
         if new_cat is None:
             # Try original (non-lowered) value
-            new_cat = CATEGORY_MIGRATION.get(entry.get("category", ""))
+            new_cat = CATEGORY_MIGRATION.get(safe_cat)
 
         if new_cat is None:
             if old_cat in VALID_CATEGORIES:
@@ -216,11 +219,24 @@ def save_entries(entries: list[dict], canonical_dir: Path) -> None:
         print(f"  [OK] {filename}: {len(file_entries)} entries")
 
 
+def _safe_category(val) -> str:
+    """Convert category value to safe string (handles NaN, None, float)."""
+    if val is None:
+        return "uncategorized"
+    if isinstance(val, float):
+        import math
+        if math.isnan(val):
+            return "uncategorized"
+        return str(val)
+    s = str(val).strip()
+    return s if s else "uncategorized"
+
+
 def print_category_stats(entries: list[dict]) -> None:
     """Print category distribution."""
     counts: dict[str, int] = {}
     for e in entries:
-        cat = e.get("category", "unknown")
+        cat = _safe_category(e.get("category"))
         counts[cat] = counts.get(cat, 0) + 1
 
     print("\nCategory distribution:")

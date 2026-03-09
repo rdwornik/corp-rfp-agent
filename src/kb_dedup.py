@@ -281,6 +281,15 @@ def main():
         kept = apply_dedup(entries, report)
         save_deduplicated(kept, canonical_dir)
         print(f"\n[DONE] {len(kept)} entries saved. {report['entries_to_remove']} removed.")
+
+        # Rebuild UNIFIED canonical from deduped per-family files
+        print("\n[INFO] Rebuilding UNIFIED canonical...")
+        try:
+            from kb_merge_canonical import merge
+            merge()
+        except Exception as e:
+            print(f"[WARNING] Auto-merge failed: {e}")
+            print("  Run manually: python src/kb_merge_canonical.py")
     else:
         print("[DRY RUN] No files changed.")
 

@@ -290,6 +290,15 @@ def main():
         except Exception as e:
             print(f"[WARNING] Auto-merge failed: {e}")
             print("  Run manually: python src/kb_merge_canonical.py")
+
+        # Sync ChromaDB index
+        print("\n[INFO] Syncing ChromaDB index...")
+        try:
+            from kb_index_sync import sync
+            sync()
+        except Exception as e:
+            print(f"[WARNING] Auto-sync failed: {e}")
+            print("  Run manually: python src/kb_index_sync.py")
     else:
         print("[DRY RUN] No files changed.")
 

@@ -1,0 +1,66 @@
+product: logistics_fom
+display_name: logistics_fom
+cloud_native: true
+deployment: []
+multi_tenant: null
+microservices: null
+uses_snowflake: null
+uses_pdc: null
+database: []
+apis: []
+security_protocols: []
+platform_services:
+  available:
+  - alm
+  - authentication
+  - authorization
+  - automated_provisioning
+  - runtime_environment
+  - user_experience_portal
+  not_available:
+  - api_management
+  - bdm
+  - bulk_distribution
+  - bulk_ingestion
+  - curated_data
+  - daas_archive
+  - daas_egress
+  - daas_reader_account
+  - data_share_app
+  - ml_studio
+  - streaming_distribution
+  - streaming_ingestion
+  - workflow_orchestrator
+  coming_soon: []
+  via_other: {}
+has_analytics: false
+has_ml_studio: false
+has_bdm: false
+has_workflow: false
+has_bulk_ingestion: false
+has_streaming: false
+has_data_share: false
+has_daas: false
+forbidden_claims:
+- Platform service 'Api Management' is not available for this product
+- Platform service 'Bdm' is not available for this product
+- Platform service 'Bulk Distribution' is not available for this product
+- Platform service 'Bulk Ingestion' is not available for this product
+- Platform service 'Curated Data' is not available for this product
+- Platform service 'Daas Archive' is not available for this product
+- Platform service 'Daas Egress' is not available for this product
+- Platform service 'Daas Reader Account' is not available for this product
+- Platform service 'Data Share App' is not available for this product
+- Platform service 'Ml Studio' is not available for this product
+- Platform service 'Streaming Distribution' is not available for this product
+- Platform service 'Streaming Ingestion' is not available for this product
+- Platform service 'Workflow Orchestrator' is not available for this product
+key_facts: []
+scalability_notes: []
+_meta:
+  generated_at: '2026-03-12T11:52:13.218140'
+  cke_sources: []
+  matrix_source: platform_matrix.json
+  cke_fact_count: 0
+  platform_services_count: 6
+  status: draft

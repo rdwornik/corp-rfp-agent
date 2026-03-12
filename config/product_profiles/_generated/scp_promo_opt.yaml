@@ -1,0 +1,63 @@
+product: scp_promo_opt
+display_name: scp_promo_opt
+cloud_native: true
+deployment: []
+multi_tenant: null
+microservices: null
+uses_snowflake: null
+uses_pdc: null
+database: []
+apis: []
+security_protocols: []
+platform_services:
+  available:
+  - authentication
+  - bulk_distribution
+  - bulk_ingestion
+  - curated_data
+  - daas_archive
+  - daas_egress
+  - daas_reader_account
+  - data_share_app
+  - ml_studio
+  not_available:
+  - alm
+  - api_management
+  - authorization
+  - automated_provisioning
+  - bdm
+  - runtime_environment
+  - streaming_distribution
+  - streaming_ingestion
+  - user_experience_portal
+  - workflow_orchestrator
+  coming_soon: []
+  via_other: {}
+has_analytics: false
+has_ml_studio: true
+has_bdm: false
+has_workflow: false
+has_bulk_ingestion: true
+has_streaming: false
+has_data_share: true
+has_daas: true
+forbidden_claims:
+- Platform service 'Alm' is not available for this product
+- Platform service 'Api Management' is not available for this product
+- Platform service 'Authorization' is not available for this product
+- Platform service 'Automated Provisioning' is not available for this product
+- Platform service 'Bdm' is not available for this product
+- Platform service 'Runtime Environment' is not available for this product
+- Platform service 'Streaming Distribution' is not available for this product
+- Platform service 'Streaming Ingestion' is not available for this product
+- Platform service 'User Experience Portal' is not available for this product
+- Platform service 'Workflow Orchestrator' is not available for this product
+key_facts: []
+scalability_notes: []
+_meta:
+  generated_at: '2026-03-12T11:52:13.365845'
+  cke_sources: []
+  matrix_source: platform_matrix.json
+  cke_fact_count: 0
+  platform_services_count: 9
+  status: draft

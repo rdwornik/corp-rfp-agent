@@ -119,4 +119,7 @@ def build_index():
 
 
 if __name__ == "__main__":
+    print("[DEPRECATED] Use 'python src/kb_index_sync.py' instead.")
+    print("             For full rebuild: python src/kb_index_sync.py --force-rebuild")
+    print()
     build_index()

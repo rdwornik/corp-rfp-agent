@@ -1,8 +1,8 @@
 {
   "version": "1.0",
-  "last_updated": "2026-02-19T22:52:32",
-  "total_files": 2,
-  "total_qa_extracted": 189,
+  "last_updated": "2026-03-11T20:58:44",
+  "total_files": 4,
+  "total_qa_extracted": 353,
   "entries": [
     {
       "archive_id": "ARC-0001",
@@ -63,6 +63,69 @@
       "canonical_entries_added": 125,
       "structure_file": "extractions/2025-04_Red_Sea_Global_LOGISTICS_response_structure.json",
       "extraction_file": "extractions/2025-04_Red_Sea_Global_LOGISTICS_response_extracted.jsonl",
+      "notes": "",
+      "tags": []
+    },
+    {
+      "archive_id": "ARC-0003",
+      "original_filename": "BRC_RfP SIOP_Service and Technical_Blue Yonder Responses.xlsx",
+      "archived_filename": "2026-01_Lenzing_PLANNING_response.xlsx",
+      "client": "Lenzing",
+      "client_industry": "manufacturing",
+      "family_code": "planning",
+      "solution_codes": [],
+      "rfp_type": "response",
+      "date_estimated": "2026-01",
+      "date_processed": "2026-03-10",
+      "region": "EMEA",
+      "extraction_stats": {
+        "total_sheets": 4,
+        "sheets_processed": 4,
+        "total_qa_extracted": 167,
+        "accepted": 145,
+        "skipped": 22,
+        "categories": {
+          "technical": 22,
+          "deployment": 34,
+          "functional": 4,
+          "security": 81,
+          "commercial": 4
+        }
+      },
+      "canonical_entries_added": 145,
+      "structure_file": "extractions/2026-01_Lenzing_PLANNING_response_structure.json",
+      "extraction_file": "extractions/2026-01_Lenzing_PLANNING_response_extracted.jsonl",
+      "notes": "",
+      "tags": []
+    },
+    {
+      "archive_id": "ARC-0004",
+      "original_filename": "BRC_RfP SIOP_Service and Technical_Blue Yonder Responses.xlsx",
+      "archived_filename": "2026-01_Lenzing_PLANNING_response.xlsx",
+      "client": "Lenzing",
+      "client_industry": "retail",
+      "family_code": "planning",
+      "solution_codes": [],
+      "rfp_type": "response",
+      "date_estimated": "2026-01",
+      "date_processed": "2026-03-11",
+      "region": "EMEA",
+      "extraction_stats": {
+        "total_sheets": 4,
+        "sheets_processed": 4,
+        "total_qa_extracted": 167,
+        "accepted": 19,
+        "skipped": 148,
+        "categories": {
+          "deployment": 5,
+          "security": 7,
+          "technical": 6,
+          "commercial": 1
+        }
+      },
+      "canonical_entries_added": 19,
+      "structure_file": "extractions/2026-01_Lenzing_PLANNING_response_structure.json",
+      "extraction_file": "extractions/2026-01_Lenzing_PLANNING_response_extracted.jsonl",
       "notes": "",
       "tags": []
     }

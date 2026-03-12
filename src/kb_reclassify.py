@@ -231,6 +231,101 @@ def llm_reclassify_batch(batch: list[dict], model: str = "gemini-flash") -> list
     return retry_with_backoff(call_llm)
 
 
+def llm_reclassify_async(entries: list[dict], model: str, dry_run: bool) -> dict:
+    """Reclassify all entries via Gemini Batch API (50% cheaper, no rate limits).
+
+    Submits one batch job with all entries, polls for completion, then applies results.
+    """
+    from batch_llm import BatchProcessor, parse_json_from_batch
+
+    stats = {"reclassified": 0, "unchanged": 0, "errors": 0, "defaulted": 0, "changes": []}
+
+    # Build one prompt per entry (same prompt format as synchronous)
+    processor = BatchProcessor(model=model)
+    batch_size_per_prompt = 10  # group entries into prompt-batches of 10
+
+    prompt_batches = []
+    for start in range(0, len(entries), batch_size_per_prompt):
+        batch = entries[start:start + batch_size_per_prompt]
+        batch_json = json.dumps([
+            {
+                "index": i,
+                "question": e.get("canonical_question", e.get("question", "")),
+                "answer": e.get("canonical_answer", e.get("answer", ""))[:300],
+            }
+            for i, e in enumerate(batch)
+        ], ensure_ascii=False)
+        prompt = LLM_CLASSIFY_PROMPT.format(batch_json=batch_json)
+        processor.add(key=f"batch_{start}", prompt=prompt)
+        prompt_batches.append((start, batch))
+
+    print(f"  Submitting {processor.count} prompt-batches to Batch API...")
+    result = processor.run(display_name="kb-reclassify", verbose=True)
+    print(f"  Batch API: {result.succeeded} succeeded, {result.failed} failed")
+
+    # Apply results
+    for start, batch in prompt_batches:
+        key = f"batch_{start}"
+        if key not in result.results:
+            # Default uncovered to technical
+            for entry in batch:
+                old_cat = entry.get("category", "")
+                if old_cat not in VALID_CATEGORIES:
+                    if not dry_run:
+                        entry["category"] = "technical"
+                    stats["defaulted"] += 1
+                else:
+                    stats["unchanged"] += 1
+            continue
+
+        try:
+            classifications = parse_json_from_batch(result.results[key])
+        except ValueError:
+            stats["errors"] += len(batch)
+            continue
+
+        covered = set()
+        if isinstance(classifications, list):
+            for item in classifications:
+                idx = item.get("index", -1)
+                new_cat = item.get("category", "")
+                confidence = item.get("confidence", 0.0)
+
+                if idx < 0 or idx >= len(batch):
+                    continue
+                if new_cat not in VALID_CATEGORIES:
+                    continue
+
+                covered.add(idx)
+                entry = batch[idx]
+                old_cat = entry.get("category", "")
+
+                if new_cat != old_cat and confidence >= 0.7:
+                    stats["changes"].append({
+                        "id": entry.get("kb_id", entry.get("id", "?")),
+                        "old": old_cat, "new": new_cat, "confidence": confidence,
+                    })
+                    if not dry_run:
+                        entry["category"] = new_cat
+                    stats["reclassified"] += 1
+                else:
+                    stats["unchanged"] += 1
+
+        # Default uncovered
+        for idx in range(len(batch)):
+            if idx not in covered:
+                entry = batch[idx]
+                old_cat = entry.get("category", "")
+                if old_cat not in VALID_CATEGORIES:
+                    if not dry_run:
+                        entry["category"] = "technical"
+                    stats["defaulted"] += 1
+                else:
+                    stats["unchanged"] += 1
+
+    return stats
+
+
 def llm_reclassify(entries: list[dict], model: str, dry_run: bool, batch_size: int = 10) -> dict:
     """Full LLM reclassification pipeline with retry on failed batches."""
     stats = {"reclassified": 0, "unchanged": 0, "errors": 0, "defaulted": 0, "changes": []}
@@ -351,6 +446,8 @@ def main():
                         help="Show changes without saving")
     parser.add_argument("--model", default="gemini-flash",
                         help="LLM model for reclassification (default: gemini-flash)")
+    parser.add_argument("--batch", action="store_true",
+                        help="Use Gemini Batch API (50%% cheaper, async)")
     parser.add_argument("--batch-size", type=int, default=10,
                         help="Entries per LLM batch (default: 10)")
     parser.add_argument("--canonical-dir", type=str, default=None)
@@ -380,8 +477,12 @@ def main():
 
     # Step 2: LLM reclassification (unless --migrate-only)
     if not args.migrate_only:
-        print(f"\n[Step 2] LLM reclassification ({args.model})...")
-        llm_stats = llm_reclassify(entries, args.model, args.dry_run, args.batch_size)
+        if args.batch:
+            print(f"\n[Step 2] Batch API reclassification ({args.model}, 50% cost)...")
+            llm_stats = llm_reclassify_async(entries, args.model, args.dry_run)
+        else:
+            print(f"\n[Step 2] LLM reclassification ({args.model})...")
+            llm_stats = llm_reclassify(entries, args.model, args.dry_run, args.batch_size)
         print(f"  Reclassified: {llm_stats['reclassified']}, "
               f"Unchanged: {llm_stats['unchanged']}, "
               f"Defaulted: {llm_stats['defaulted']}, "
@@ -400,6 +501,15 @@ def main():
         print("\n[INFO] Saving entries...")
         save_entries(entries, canonical_dir)
         print("[DONE] Reclassification complete.")
+
+        # Sync ChromaDB index
+        print("\n[INFO] Syncing ChromaDB index...")
+        try:
+            from kb_index_sync import sync
+            sync()
+        except Exception as e:
+            print(f"[WARNING] Auto-sync failed: {e}")
+            print("  Run manually: python src/kb_index_sync.py")
     else:
         for e in entries:
             e.pop("_source_file", None)

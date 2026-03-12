@@ -19,6 +19,20 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
+import numpy as np
+
+
+class NumpyEncoder(json.JSONEncoder):
+    """JSON encoder that handles numpy types from embeddings."""
+    def default(self, obj):
+        if isinstance(obj, (np.floating,)):
+            return float(obj)
+        if isinstance(obj, (np.integer,)):
+            return int(obj)
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return super().default(obj)
+
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
@@ -552,5 +566,5 @@ def save_improve_report(audit_log: list, source_file: str, output_dir: Optional[
     out_dir = output_dir or Path(__file__).resolve().parents[1] / "data" / "kb"
     path = out_dir / "improve_report.json"
     with open(path, "w", encoding="utf-8") as f:
-        json.dump(report, f, indent=2, ensure_ascii=False)
+        json.dump(report, f, indent=2, ensure_ascii=False, cls=NumpyEncoder)
     return path

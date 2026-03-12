@@ -1,0 +1,10 @@
+# WMS Override - corrections to auto-generated profile
+cloud_native: false
+uses_snowflake: false
+multi_tenant: false
+database: [sql_server, oracle]
+security_protocols: [saml2, oauth2]
+
+review_notes: "Verified by Rob 2026-03-12. WMS Classic is NOT cloud-native, does NOT use Snowflake directly."
+last_reviewed: "2026-03-12"
+status: active

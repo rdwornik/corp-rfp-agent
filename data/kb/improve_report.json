@@ -1,0 +1,4564 @@
+{
+  "source_file": "BRC_RfP SIOP_Service and Technical_Blue Yonder Responses.xlsx",
+  "timestamp": "2026-03-11T21:32:57.162361",
+  "summary": {
+    "total": 163,
+    "kept": 143,
+    "replaced": 1,
+    "added": 19
+  },
+  "decisions": [
+    {
+      "index": 0,
+      "existing_kb_id": "PLN-TECH-0146",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): Answer B is identical to Answer A and therefore provides no improvement over the existing content.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 8,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 14
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 8,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 14
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 1,
+      "decision": "ADD_NEW",
+      "reason": "No KB match (best sim: 0.79 < 0.80)",
+      "stage": "no_match",
+      "similarity": 0.7928000092506409
+    },
+    {
+      "index": 2,
+      "existing_kb_id": "PLN-TECH-0001",
+      "similarity": 0.8738999962806702,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): Answer B is identical to Answer A and both are truncated, so the existing answer is retained per the instructions.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 8,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 10
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 8,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 10
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 3,
+      "existing_kb_id": "PLN-TECH-0148",
+      "similarity": 0.8133000135421753,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): Answer B is identical to Answer A, and the instructions specify to keep the existing answer if there is no clear improvement or if the evaluator is unsure.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 8,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 10
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 8,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 10
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 4,
+      "existing_kb_id": "PLN-DEPL-0149",
+      "similarity": 0.9172000288963318,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): Answer B is identical to Answer A, and the instructions specify keeping the existing answer if no improvement is found.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 8,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 12
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 8,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 12
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 5,
+      "existing_kb_id": "PLN-SEC-0150",
+      "similarity": 0.8403000235557556,
+      "decision": "ADD_NEW",
+      "reason": "Different topic (LLM confidence: 9)",
+      "stage": "topic_guard",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 6
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 6
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 6,
+      "existing_kb_id": "PLN-DEPL-0151",
+      "similarity": 0.8812000155448914,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): Answer B is identical to Answer A and both are truncated, so there is no improvement to justify a change.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 7,
+      "existing_kb_id": "PLN-TECH-0152",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): Answer B is identical to Answer A, including the same truncation error at the end, so there is no reason to replace the existing entry.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 6,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 10
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 6,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 10
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 8,
+      "decision": "ADD_NEW",
+      "reason": "No KB match (best sim: 0.77 < 0.80)",
+      "stage": "no_match",
+      "similarity": 0.7660999894142151
+    },
+    {
+      "index": 9,
+      "existing_kb_id": "PLN-TECH-0154",
+      "similarity": 0.9616000056266785,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): Answer B is identical to Answer A, including the truncated final sentence, so there is no reason to replace the existing content.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 8,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 12
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 8,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 12
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 10,
+      "existing_kb_id": "PLN-TECH-0155",
+      "similarity": 0.91839998960495,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): Answer A and Answer B are identical, so the existing answer should be retained.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 8,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 14
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 8,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 14
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 11,
+      "decision": "ADD_NEW",
+      "reason": "No KB match (best sim: 0.78 < 0.80)",
+      "stage": "no_match",
+      "similarity": 0.777899980545044
+    },
+    {
+      "index": 12,
+      "existing_kb_id": "PLN-DEPL-0157",
+      "similarity": 0.854200005531311,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): Answer B is identical to Answer A and therefore offers no improvement over the existing content.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 8
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 8
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 13,
+      "existing_kb_id": "PLN-DEPL-0002",
+      "similarity": 0.8826000094413757,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): Answer A and Answer B are identical, so the existing answer should be retained.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 6,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 12
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 6,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 12
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 14,
+      "existing_kb_id": "PLN-DEPL-0003",
+      "similarity": 0.9876000285148621,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): Answer A and Answer B are identical, so there is no reason to replace the existing content.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 2
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 2
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 15,
+      "existing_kb_id": "PLN-DEPL-0004",
+      "similarity": 0.8407999873161316,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): Answer B is identical to Answer A and provides no improvements or additional information.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 10
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 10
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 16,
+      "existing_kb_id": "PLN-DEPL-0005",
+      "similarity": 0.8794999718666077,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): Answer A and Answer B are identical, so there is no reason to replace the existing entry.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 2
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 2
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 17,
+      "existing_kb_id": "PLN-TECH-0006",
+      "similarity": 0.822700023651123,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): Answer B is identical to Answer A, and the instructions specify to keep the existing answer if no improvement is found.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 18,
+      "existing_kb_id": "PLN-DEPL-0007",
+      "similarity": 0.880299985408783,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): Answer B is identical to Answer A and both are incomplete, so there is no reason to replace the existing entry.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 19,
+      "decision": "ADD_NEW",
+      "reason": "No KB match (best sim: 0.79 < 0.80)",
+      "stage": "no_match",
+      "similarity": 0.7851999998092651
+    },
+    {
+      "index": 20,
+      "existing_kb_id": "PLN-DEPL-0159",
+      "similarity": 0.823199987411499,
+      "decision": "ADD_NEW",
+      "reason": "Different topic (LLM confidence: 9)",
+      "stage": "topic_guard",
+      "scores": {
+        "existing": {
+          "red_flags": -5,
+          "specificity": 6,
+          "concrete_details": 4,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 9
+        },
+        "new": {
+          "red_flags": -5,
+          "specificity": 6,
+          "concrete_details": 4,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 9
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 21,
+      "existing_kb_id": "PLN-DEPL-0009",
+      "similarity": 0.8101000189781189,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): The provided answers are identical, so the existing answer should be retained as there is no improvement to justify a change.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 8
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 8
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 22,
+      "existing_kb_id": "PLN-DEPL-0161",
+      "similarity": 0.8536999821662903,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): The provided text for Answer A and Answer B is identical, so the existing answer should be retained.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 6,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 10
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 6,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 10
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 23,
+      "existing_kb_id": "PLN-TECH-0011",
+      "similarity": 0.8902000188827515,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): Answer B is identical to Answer A, so there is no reason to replace the existing content.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 8,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 12
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 8,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 12
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 24,
+      "existing_kb_id": "PLN-TECH-0012",
+      "similarity": 0.916700005531311,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): Answer A and Answer B are identical, so the existing answer is retained as per the instructions.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 8
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 8
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 25,
+      "existing_kb_id": "PLN-TECH-0013",
+      "similarity": 0.9772999882698059,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): Answer B is identical to Answer A, so the existing answer should be retained.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 2
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 2
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 26,
+      "existing_kb_id": "PLN-FUNC-0014",
+      "similarity": 0.953499972820282,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): Answer B is identical to Answer A, so there is no reason to replace the existing content.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 27,
+      "existing_kb_id": "PLN-TECH-0015",
+      "similarity": 0.862500011920929,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): The two answers are identical in content and structure, so there is no reason to replace the existing one.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 28,
+      "existing_kb_id": "PLN-FUNC-0162",
+      "similarity": 0.8040000200271606,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): Answer B is identical to Answer A, providing no improvements or additional information to address the missing branding requirement.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 29,
+      "existing_kb_id": "kb_0301",
+      "similarity": 0.8260999917984009,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 9): While Answer B provides more technical detail regarding webhooks and batch processes, it contains a truncated sentence at the end, making Answer A the more professional and complete choice for a knowledge base.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 6,
+          "recency": 2
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 30,
+      "existing_kb_id": "PLN-DEPL-0017",
+      "similarity": 0.9480000138282776,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): The two answers are identical, so the existing answer is retained as it already meets all evaluation criteria.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 8
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 8
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 31,
+      "existing_kb_id": "PLN-DEPL-0018",
+      "similarity": 0.955299973487854,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): Answer A and Answer B are identical, so the existing entry should be maintained.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 8
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 8
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 32,
+      "existing_kb_id": "PLN-TECH-0019",
+      "similarity": 0.8185999989509583,
+      "decision": "ADD_NEW",
+      "reason": "Different topic (LLM confidence: 9)",
+      "stage": "topic_guard",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 8
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 8
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 33,
+      "existing_kb_id": "PLN-FUNC-0020",
+      "similarity": 0.8610000014305115,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): Answer B is identical to Answer A, so the existing content should be maintained.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 34,
+      "existing_kb_id": "PLN-FUNC-0021",
+      "similarity": 0.8913999795913696,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): Answer B is identical to Answer A, so there is no reason to replace the existing content.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 35,
+      "existing_kb_id": "PLN-TECH-0022",
+      "similarity": 0.8133999705314636,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): Answer B is identical to Answer A, so there is no improvement or reason to replace the existing content.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 36,
+      "existing_kb_id": "PLN-TECH-0164",
+      "similarity": 0.8450999855995178,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): Answer B is identical to Answer A, providing no improvement or change to the existing content.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 8
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 8
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 37,
+      "existing_kb_id": "PLN-DEPL-0024",
+      "similarity": 0.8871999979019165,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): Answer A and Answer B are identical, so the existing answer is retained as per the instructions.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 8
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 8
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 38,
+      "existing_kb_id": "PLN-DEPL-0025",
+      "similarity": 0.9205999970436096,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): Answer A and Answer B are identical, so the existing answer should be retained.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 6,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 10
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 6,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 10
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 39,
+      "existing_kb_id": "PLN-DEPL-0026",
+      "similarity": 0.8942999839782715,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): Answer A and Answer B are identical, so the existing answer is retained per the instructions.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 10
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 10
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 40,
+      "existing_kb_id": "PLN-DEPL-0027",
+      "similarity": 0.9724000096321106,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): Answer B is identical to Answer A, providing no improvement or change to the existing content.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 8
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 8
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 41,
+      "existing_kb_id": "PLN-SEC-0028",
+      "similarity": 0.8841000199317932,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): Answer B is identical to Answer A, including the truncated ending, so there is no reason to replace the existing entry.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 8,
+          "concrete_details": 4,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 16
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 8,
+          "concrete_details": 4,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 16
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 42,
+      "existing_kb_id": "PLN-DEPL-0029",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): Answer B is identical to Answer A, so the existing answer should be retained.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 43,
+      "existing_kb_id": "PLN-DEPL-0030",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): Answer B is identical to Answer A and both contain an incomplete sentence at the end, providing no improvement over the existing content.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 6,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 10
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 6,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 10
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 44,
+      "existing_kb_id": "PLN-SEC-0031",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): Answer B is identical to Answer A, so there is no reason to replace the existing content.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 45,
+      "existing_kb_id": "PLN-SEC-0032",
+      "similarity": 0.9642000198364258,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): Answer B is identical to Answer A, so there is no reason to replace the existing content.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 6
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 6
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 46,
+      "existing_kb_id": "PLN-SEC-0033",
+      "similarity": 0.9684000015258789,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): Answer B is identical to Answer A, so there is no reason to replace the existing content.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 47,
+      "existing_kb_id": "PLN-TECH-0034",
+      "similarity": 0.9731000065803528,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): Answer B is identical to Answer A, including the incomplete sentence at the end, providing no improvement over the existing entry.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 6
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 6
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 48,
+      "existing_kb_id": "PLN-SEC-0035",
+      "similarity": 0.968999981880188,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): Answer A and Answer B are identical, so the existing answer should be retained.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 49,
+      "existing_kb_id": "PLN-TECH-0036",
+      "similarity": 0.8668000102043152,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): Answer B is identical to Answer A, including the truncated final sentence, and therefore provides no improvement over the existing content.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 8
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 8
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 50,
+      "existing_kb_id": "PLN-SEC-0037",
+      "similarity": 0.8770999908447266,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): Answer B is identical to Answer A, so there is no reason to replace the existing content.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 6,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 8
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 6,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 8
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 51,
+      "existing_kb_id": "PLN-SEC-0038",
+      "similarity": 0.8314999938011169,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): Answer A and Answer B are identical, so there is no reason to replace the existing content.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 6,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 8
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 6,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 8
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 52,
+      "existing_kb_id": "PLN-SEC-0167",
+      "similarity": 0.8238999843597412,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): Answer A and Answer B are identical, so the existing answer is retained as per the instructions.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 6,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 8
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 6,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 8
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 53,
+      "existing_kb_id": "PLN-SEC-0040",
+      "similarity": 0.8012999892234802,
+      "decision": "KEEP_EXISTING",
+      "reason": "LLM chose existing (confidence: 10): Answer B is identical to Answer A, providing no improvement or change to the existing content.",
+      "stage": "llm_judge",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 6,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 8
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 6,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 8
+        }
+      },
+      "llm_used": true
+    },
+    {
+      "index": 54,
+      "decision": "ADD_NEW",
+      "reason": "No KB match (best sim: 0.70 < 0.80)",
+      "stage": "no_match",
+      "similarity": 0.7013000249862671
+    },
+    {
+      "index": 55,
+      "decision": "ADD_NEW",
+      "reason": "No KB match (best sim: 0.73 < 0.80)",
+      "stage": "no_match",
+      "similarity": 0.729200005531311
+    },
+    {
+      "index": 56,
+      "existing_kb_id": "PLN-SEC-0043",
+      "similarity": 0.878600001335144,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 8
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 8
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 57,
+      "existing_kb_id": "PLN-DEPL-0044",
+      "similarity": 0.8672000169754028,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 58,
+      "existing_kb_id": "PLN-TECH-0045",
+      "similarity": 0.833299994468689,
+      "decision": "ADD_NEW",
+      "reason": "Topic uncertain, LLM unavailable -- adding as new",
+      "stage": "topic_guard_budget",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 8
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 8
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 59,
+      "existing_kb_id": "PLN-TECH-0046",
+      "similarity": 0.8276000022888184,
+      "decision": "ADD_NEW",
+      "reason": "Topic uncertain, LLM unavailable -- adding as new",
+      "stage": "topic_guard_budget",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 6
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 6
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 60,
+      "existing_kb_id": "PLN-SEC-0047",
+      "similarity": 0.9745000004768372,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 8
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 8
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 61,
+      "existing_kb_id": "PLN-DEPL-0048",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 62,
+      "existing_kb_id": "PLN-SEC-0049",
+      "similarity": 0.9264000058174133,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 6,
+          "concrete_details": 4,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 14
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 6,
+          "concrete_details": 4,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 14
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 63,
+      "existing_kb_id": "PLN-COM-0050",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": -1,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 5
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": -1,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 5
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 64,
+      "existing_kb_id": "PLN-SEC-0051",
+      "similarity": 0.8632000088691711,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 8,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 12
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 8,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 12
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 65,
+      "existing_kb_id": "PLN-SEC-0052",
+      "similarity": 0.90829998254776,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 6
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 6
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 66,
+      "existing_kb_id": "PLN-SEC-0053",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 8
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 8
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 67,
+      "existing_kb_id": "PLN-SEC-0054",
+      "similarity": 0.9872000217437744,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 6
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 6
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 68,
+      "existing_kb_id": "PLN-SEC-0055",
+      "similarity": 0.9524999856948853,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 8,
+          "concrete_details": 4,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 16
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 8,
+          "concrete_details": 4,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 16
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 69,
+      "existing_kb_id": "PLN-SEC-0056",
+      "similarity": 0.9369000196456909,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 8,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 12
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 8,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 12
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 70,
+      "existing_kb_id": "PLN-SEC-0057",
+      "similarity": 0.8641999959945679,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 6
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 6
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 71,
+      "existing_kb_id": "PLN-COM-0058",
+      "similarity": 0.8434000015258789,
+      "decision": "ADD_NEW",
+      "reason": "Topic uncertain, LLM unavailable -- adding as new",
+      "stage": "topic_guard_budget",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 8
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 8
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 72,
+      "existing_kb_id": "PLN-SEC-0059",
+      "similarity": 0.9358999729156494,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 0
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 0
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 73,
+      "existing_kb_id": "PLN-SEC-0060",
+      "similarity": 0.9527000188827515,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 6,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 10
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 6,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 10
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 74,
+      "existing_kb_id": "PLN-SEC-0061",
+      "similarity": 0.8802000284194946,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 8,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 14
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 8,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 14
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 75,
+      "existing_kb_id": "PLN-SEC-0052",
+      "similarity": 0.9301999807357788,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 6
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 6
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 76,
+      "existing_kb_id": "PLN-SEC-0063",
+      "similarity": 0.9000999927520752,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 8,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 14
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 8,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 14
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 77,
+      "existing_kb_id": "PLN-SEC-0064",
+      "similarity": 0.9232000112533569,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 78,
+      "existing_kb_id": "PLN-DEPL-0173",
+      "similarity": 0.8784000277519226,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 6,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 8
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 6,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 8
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 79,
+      "existing_kb_id": "PLN-SEC-0066",
+      "similarity": 0.9251999855041504,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 6,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 10
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 6,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 10
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 80,
+      "existing_kb_id": "PLN-SEC-0067",
+      "similarity": 0.9003999829292297,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 8,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 12
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 8,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 12
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 81,
+      "existing_kb_id": "PLN-SEC-0068",
+      "similarity": 0.8834999799728394,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 82,
+      "existing_kb_id": "PLN-SEC-0069",
+      "similarity": 0.8709999918937683,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 8
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 8
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 83,
+      "existing_kb_id": "PLN-DEPL-0070",
+      "similarity": 0.8152999877929688,
+      "decision": "ADD_NEW",
+      "reason": "Topic uncertain, LLM unavailable -- adding as new",
+      "stage": "topic_guard_budget",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 10
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 10
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 84,
+      "existing_kb_id": "PLN-SEC-0071",
+      "similarity": 0.9039999842643738,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 6
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 6
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 85,
+      "existing_kb_id": "PLN-DEPL-0072",
+      "similarity": 0.8952999711036682,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 2,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 2
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 2,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 2
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 86,
+      "existing_kb_id": "PLN-TECH-0073",
+      "similarity": 0.9878000020980835,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 1
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 1
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 87,
+      "existing_kb_id": "PLN-SEC-0074",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 6,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 10
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 6,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 10
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 88,
+      "existing_kb_id": "PLN-SEC-0076",
+      "similarity": 0.9894999861717224,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 6,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 6
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 6,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 6
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 89,
+      "existing_kb_id": "PLN-SEC-0077",
+      "similarity": 0.97079998254776,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 0,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": -1
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 0,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": -1
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 90,
+      "existing_kb_id": "PLN-COM-0078",
+      "similarity": 0.9603000283241272,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 2,
+          "structure": -1,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 7
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 2,
+          "structure": -1,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 7
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 91,
+      "existing_kb_id": "PLN-SEC-0079",
+      "similarity": 0.9585000276565552,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 2,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 1
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 2,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 1
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 92,
+      "existing_kb_id": "PLN-SEC-0080",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 2,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 5
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 2,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 5
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 93,
+      "existing_kb_id": "PLN-SEC-0081",
+      "similarity": 0.9932000041007996,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 4,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 8
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 4,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 8
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 94,
+      "existing_kb_id": "PLN-SEC-0082",
+      "similarity": 0.9733999967575073,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 2,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 5
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 2,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 5
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 95,
+      "existing_kb_id": "PLN-SEC-0083",
+      "similarity": 0.9089000225067139,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 6,
+          "concrete_details": 2,
+          "structure": 0,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 10
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 6,
+          "concrete_details": 2,
+          "structure": 0,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 10
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 96,
+      "existing_kb_id": "PLN-TECH-0084",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 1
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 1
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 97,
+      "existing_kb_id": "PLN-DEPL-0085",
+      "similarity": 0.97079998254776,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 2,
+          "structure": -1,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 7
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 2,
+          "structure": -1,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 7
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 98,
+      "existing_kb_id": "PLN-SEC-0086",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 8,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 10
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 8,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 10
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 99,
+      "existing_kb_id": "PLN-SEC-0175",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 1
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 1
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 100,
+      "existing_kb_id": "PLN-DEPL-0087",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 101,
+      "existing_kb_id": "PLN-SEC-0088",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 6
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 6
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 102,
+      "existing_kb_id": "PLN-SEC-0089",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 2
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 2
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 103,
+      "existing_kb_id": "PLN-TECH-0090",
+      "similarity": 0.9279999732971191,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 104,
+      "existing_kb_id": "PLN-COM-0176",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 0
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 0
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 105,
+      "existing_kb_id": "PLN-SEC-0091",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 6
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 6
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 106,
+      "existing_kb_id": "PLN-SEC-0175",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 1
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 1
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 107,
+      "existing_kb_id": "PLN-SEC-0081",
+      "similarity": 0.9932000041007996,
+      "decision": "KEEP_EXISTING",
+      "reason": "Existing scores 4 points higher (8 vs 4)",
+      "stage": "scoring",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 4,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 8
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 2,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 108,
+      "existing_kb_id": "PLN-SEC-0093",
+      "similarity": 0.9745000004768372,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 1
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 1
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 109,
+      "existing_kb_id": "PLN-SEC-0094",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 1
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 1
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 110,
+      "existing_kb_id": "PLN-SEC-0095",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 6,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 8
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 6,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 8
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 111,
+      "existing_kb_id": "PLN-TECH-0096",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 0
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 0
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 112,
+      "existing_kb_id": "PLN-SEC-0097",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 2,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 5
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 2,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 5
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 113,
+      "existing_kb_id": "PLN-SEC-0098",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 0,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": -1
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 0,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": -1
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 114,
+      "existing_kb_id": "PLN-DEPL-0099",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 2
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 2
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 115,
+      "existing_kb_id": "PLN-SEC-0100",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": -1,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 5
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": -1,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 5
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 116,
+      "existing_kb_id": "PLN-SEC-0101",
+      "similarity": 0.9961000084877014,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 6
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 6
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 117,
+      "existing_kb_id": "PLN-SEC-0102",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 0
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 0
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 118,
+      "existing_kb_id": "PLN-TECH-0103",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 1
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 1
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 119,
+      "existing_kb_id": "PLN-SEC-0104",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 6,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 8
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 6,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 8
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 120,
+      "existing_kb_id": "PLN-SEC-0079",
+      "similarity": 0.9585000276565552,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 2,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 1
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 2,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 3
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 121,
+      "existing_kb_id": "PLN-DEPL-0072",
+      "similarity": 0.8952999711036682,
+      "decision": "REPLACE",
+      "reason": "New scores 4 points higher (6 vs 2)",
+      "stage": "scoring",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 2,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 2
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 2,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 6
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 122,
+      "existing_kb_id": "PLN-TECH-0107",
+      "similarity": 0.9337999820709229,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 2
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 2
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 123,
+      "existing_kb_id": "PLN-TECH-0178",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 0,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": -1
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 0,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": -1
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 124,
+      "existing_kb_id": "PLN-DEPL-0179",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": -1,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 5
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": -1,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 5
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 125,
+      "existing_kb_id": "PLN-SEC-0110",
+      "similarity": 0.8310999870300293,
+      "decision": "ADD_NEW",
+      "reason": "Topic uncertain, LLM unavailable -- adding as new",
+      "stage": "topic_guard_budget",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 0
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 0
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 126,
+      "decision": "ADD_NEW",
+      "reason": "No KB match (best sim: 0.79 < 0.80)",
+      "stage": "no_match",
+      "similarity": 0.7932999730110168
+    },
+    {
+      "index": 127,
+      "decision": "ADD_NEW",
+      "reason": "No KB match (best sim: 0.70 < 0.80)",
+      "stage": "no_match",
+      "similarity": 0.6984000205993652
+    },
+    {
+      "index": 128,
+      "existing_kb_id": "PLN-SEC-0113",
+      "similarity": 0.8224999904632568,
+      "decision": "ADD_NEW",
+      "reason": "Topic uncertain, LLM unavailable -- adding as new",
+      "stage": "topic_guard_budget",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 129,
+      "existing_kb_id": "PLN-DEPL-0184",
+      "similarity": 0.8551999926567078,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 8
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 8
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 130,
+      "existing_kb_id": "PLN-DEPL-0115",
+      "similarity": 0.9235000014305115,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 6,
+          "concrete_details": 2,
+          "structure": 0,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 10
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 6,
+          "concrete_details": 2,
+          "structure": 0,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 10
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 131,
+      "existing_kb_id": "PLN-DEPL-0116",
+      "similarity": 0.9453999996185303,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": -1,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 5
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": -1,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 5
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 132,
+      "existing_kb_id": "PLN-DEPL-0117",
+      "similarity": 0.8185999989509583,
+      "decision": "ADD_NEW",
+      "reason": "Topic uncertain, LLM unavailable -- adding as new",
+      "stage": "topic_guard_budget",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 2,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 3
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 2,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 3
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 133,
+      "existing_kb_id": "PLN-DEPL-0186",
+      "similarity": 0.9732999801635742,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 0
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 0
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 134,
+      "existing_kb_id": "PLN-COM-0187",
+      "similarity": 0.902400016784668,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 1
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 1
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 135,
+      "existing_kb_id": "PLN-SEC-0120",
+      "similarity": 0.9365000128746033,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 0
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 0
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 136,
+      "existing_kb_id": "PLN-SEC-0188",
+      "similarity": 0.933899998664856,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 2,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 3
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 2,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 3
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 137,
+      "existing_kb_id": "PLN-SEC-0122",
+      "similarity": 0.8618000149726868,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 0
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 0
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 138,
+      "existing_kb_id": "PLN-SEC-0123",
+      "similarity": 0.885200023651123,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 1
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 1
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 139,
+      "existing_kb_id": "PLN-SEC-0124",
+      "similarity": 0.8888000249862671,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 2,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 6
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 2,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 6
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 140,
+      "existing_kb_id": "PLN-SEC-0125",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 0
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 0
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 141,
+      "existing_kb_id": "PLN-SEC-0126",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 2,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 3
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 2,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 3
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 142,
+      "existing_kb_id": "PLN-DEPL-0189",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 2,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 3
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 2,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 3
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 143,
+      "existing_kb_id": "PLN-SEC-0127",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 2
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 2
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 144,
+      "existing_kb_id": "PLN-SEC-0128",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 0
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 0
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 145,
+      "existing_kb_id": "PLN-SEC-0129",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 1
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 1
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 146,
+      "existing_kb_id": "PLN-SEC-0130",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 0
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 0
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 147,
+      "existing_kb_id": "PLN-SEC-0131",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 2,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 6
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 2,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 6
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 148,
+      "existing_kb_id": "PLN-SEC-0132",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 2
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 2
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 149,
+      "existing_kb_id": "PLN-SEC-0133",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 150,
+      "existing_kb_id": "PLN-SEC-0134",
+      "similarity": 0.8500000238418579,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 2
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 2
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 151,
+      "existing_kb_id": "PLN-SEC-0135",
+      "similarity": 0.9373999834060669,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 1
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 1
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 152,
+      "existing_kb_id": "PLN-SEC-0136",
+      "similarity": 0.9232000112533569,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 1
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 1
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 153,
+      "existing_kb_id": "PLN-SEC-0137",
+      "similarity": 0.9753999710083008,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 0,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": -1
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 0,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": -1
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 154,
+      "existing_kb_id": "PLN-SEC-0138",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 6
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 6
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 155,
+      "existing_kb_id": "PLN-DEPL-0139",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 1
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 1
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 156,
+      "existing_kb_id": "PLN-DEPL-0190",
+      "similarity": 0.8808000087738037,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 8
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 4,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 2,
+          "deprecated": 0,
+          "total": 8
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 157,
+      "existing_kb_id": "PLN-DEPL-0141",
+      "similarity": 0.972599983215332,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 0
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 0
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 158,
+      "existing_kb_id": "PLN-SEC-0142",
+      "similarity": 0.8416000008583069,
+      "decision": "ADD_NEW",
+      "reason": "Topic uncertain, LLM unavailable -- adding as new",
+      "stage": "topic_guard_budget",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 2,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 2,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 159,
+      "existing_kb_id": "PLN-SEC-0143",
+      "similarity": 0.9573000073432922,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 2,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 1
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 0,
+          "concrete_details": 2,
+          "structure": -1,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 1
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 160,
+      "existing_kb_id": "PLN-SEC-0144",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 2,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 2,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 161,
+      "existing_kb_id": "PLN-SEC-0192",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 2
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 0,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 2
+        }
+      },
+      "llm_used": false
+    },
+    {
+      "index": 162,
+      "existing_kb_id": "PLN-SEC-0145",
+      "similarity": 1.0,
+      "decision": "KEEP_EXISTING",
+      "reason": "Tie zone, LLM unavailable -- keeping existing (conservative)",
+      "stage": "scoring_tie_no_llm",
+      "scores": {
+        "existing": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        },
+        "new": {
+          "red_flags": 0,
+          "specificity": 2,
+          "concrete_details": 0,
+          "structure": 2,
+          "currency": 0,
+          "deprecated": 0,
+          "total": 4
+        }
+      },
+      "llm_used": false
+    }
+  ]
+}

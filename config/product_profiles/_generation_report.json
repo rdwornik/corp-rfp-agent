@@ -1,0 +1,15 @@
+{
+  "timestamp": "2026-03-12T13:09:24.921956",
+  "sources": {
+    "svc": null,
+    "arch": null,
+    "matrix": "C:\\Users\\1028120\\AppData\\Local\\Temp\\pytest-of-1028120\\pytest-29\\test_generate_single_product0\\platform_matrix.json"
+  },
+  "products_generated": [
+    "wms"
+  ],
+  "products_skipped": [],
+  "total": 1,
+  "cke_matches": 0,
+  "matrix_only": 1
+}

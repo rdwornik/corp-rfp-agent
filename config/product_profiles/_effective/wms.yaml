@@ -1,0 +1,98 @@
+product: wms
+display_name: Blue Yonder Warehouse Management
+cloud_native: false
+deployment:
+- azure
+multi_tenant: false
+microservices: false
+uses_snowflake: false
+uses_pdc: true
+database:
+- sql_server
+- oracle
+apis:
+- rest
+- json
+- kafka
+- azure_blob
+security_protocols:
+- saml2
+- oauth2
+platform_services:
+  available:
+  - api_management
+  - authentication
+  - automated_provisioning
+  - curated_data
+  - daas_archive
+  - daas_egress
+  - daas_reader_account
+  - ml_studio
+  - runtime_environment
+  - streaming_distribution
+  - streaming_ingestion
+  - user_experience_portal
+  not_available:
+  - alm
+  - authorization
+  - bdm
+  - bulk_distribution
+  - bulk_ingestion
+  - data_share_app
+  - workflow_orchestrator
+  coming_soon: []
+  via_other: {}
+has_analytics: false
+has_ml_studio: true
+has_bdm: false
+has_workflow: false
+has_bulk_ingestion: false
+has_streaming: true
+has_data_share: false
+has_daas: true
+forbidden_claims:
+- Snowflake (as a direct data layer or specific integration point, beyond PDC)
+- SOAP APIs
+- GraphQL APIs
+- NOT microservices (WMS Classic)
+- Does NOT use Snowflake
+- NOT cloud-native in the same way as Platform 25.2/25.4
+- NOT integrated with Platform 25.2/25.4 (WMS Classic)
+- Does NOT natively use semantic data model or zero-copy clones
+- Platform service 'Alm' is not available for this product
+- Platform service 'Authorization' is not available for this product
+- Platform service 'Bdm' is not available for this product
+- Platform service 'Bulk Distribution' is not available for this product
+- Platform service 'Bulk Ingestion' is not available for this product
+- Platform service 'Data Share App' is not available for this product
+- Platform service 'Workflow Orchestrator' is not available for this product
+key_facts:
+- Enabled for Planning-Execution Interoperability service function.
+- Enabled for Synchronizing Execution service function.
+- Leverages Platform Data Cloud for common data ingestion.
+- Uses adapters for interoperability with other solutions.
+- Uses Identity and Access Management (IAM) as it is a company SaaS Resource.
+- Tightly integrated with Platform versions 25.2 and 25.4
+- Uses its own application schema
+- Sends Inventory snapshot to planning domain solutions.
+- Sends intraday inventory updates or adjustments to planning domain solutions.
+- Supports ETL archiving
+- Uses its own application specific schema
+scalability_notes:
+- Supports maximum of 500,000 order releases transferred from PDC.
+- Supports maximum of 15,000 work orders transferred from PDC.
+- 'Ingestion performance for common data through Synchronizing Execution adapters: item master (300,000 records in 115 minutes),
+  item master updates (71,000 records in 69 minutes), customer order (75,000 orders in 83 minutes), B2C customer order (262,000
+  orders in 131 minutes), transfer order (24,000 orders in 60 minutes).'
+_meta:
+  generated_at: '2026-03-12T11:52:13.381917'
+  cke_sources:
+  - service_description
+  - architecture
+  matrix_source: platform_matrix.json
+  cke_fact_count: 40
+  platform_services_count: 12
+  status: active
+  last_override: '2026-03-12'
+  override_count: 5
+  review_notes: Verified by Rob 2026-03-12. WMS Classic is NOT cloud-native, does NOT use Snowflake directly.

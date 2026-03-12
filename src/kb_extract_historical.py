@@ -43,6 +43,12 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from dotenv import load_dotenv
 load_dotenv(PROJECT_ROOT / ".env", override=True)
 
+from answer_selector import (
+    NumpyEncoder,
+    select_answer, print_improve_report, save_improve_report,
+    LLM_BUDGET_PER_FILE,
+)
+
 # ============================================================
 # PATHS + CONSTANTS
 # ============================================================
@@ -170,7 +176,7 @@ def load_canonical(canon_file: str) -> list:
 def save_canonical(canon_file: str, entries: list) -> None:
     p = CANONICAL_DIR / canon_file
     with open(p, "w", encoding="utf-8") as f:
-        json.dump(entries, f, indent=2, ensure_ascii=False)
+        json.dump(entries, f, indent=2, ensure_ascii=False, cls=NumpyEncoder)
     print(f"[OK] Wrote {len(entries)} entries -> {p.name}")
 
 
@@ -196,7 +202,7 @@ def load_registry() -> dict:
 def save_registry(reg: dict) -> None:
     reg["last_updated"] = NOW_ISO
     with open(REGISTRY_PATH, "w", encoding="utf-8") as f:
-        json.dump(reg, f, indent=2, ensure_ascii=False)
+        json.dump(reg, f, indent=2, ensure_ascii=False, cls=NumpyEncoder)
 
 
 def next_archive_id(reg: dict) -> str:
@@ -355,7 +361,7 @@ def analyze_structure_llm(prescan: dict, family_display: str, model: str) -> dic
     prompt = f"""Analyze this RFP Excel file for Blue Yonder {family_display}.
 
 File contents (first 15 rows per sheet, columns labeled A/B/C...):
-{json.dumps(compact, indent=2)}
+{json.dumps(compact, indent=2, cls=NumpyEncoder)}
 
 This RFP may contain client questions, BY product answers, requirement IDs,
 category headers, compliance indicators (Y/N/Partial), and comments.
@@ -593,7 +599,7 @@ Return a JSON array — one object per row, same order as input:
 RULE: keep=true ONLY for BY_PRODUCT_ANSWER.
 
 Rows to classify:
-{json.dumps(batch_data, indent=2)}
+{json.dumps(batch_data, indent=2, cls=NumpyEncoder)}
 
 Return ONLY valid JSON array."""
 
@@ -753,6 +759,102 @@ Return ONLY valid JSON array."""
     return result
 
 
+def classify_rows_batch_async(rows: list[dict], family: dict, model: str) -> list[dict]:
+    """Classify rows via Gemini Batch API (50% cheaper, no rate limits).
+
+    Same logic as classify_rows_batch but submits all prompt-batches as one
+    async batch job instead of sequential synchronous calls.
+    """
+    from batch_llm import BatchProcessor, parse_json_from_batch
+
+    BATCH    = 10
+    sol_list = ", ".join(family["solution_codes"])
+    fname    = family["display_name"]
+
+    processor = BatchProcessor(model=model)
+    batches   = []
+
+    for i in range(0, len(rows), BATCH):
+        batch = rows[i : i + BATCH]
+        items = ""
+        for j, r in enumerate(batch):
+            items += (
+                f'\n[{j}]\n'
+                f'Q: {r["question"][:300]}\n'
+                f'A: {r["answer"][:200]}\n'
+            )
+
+        prompt = f"""Classify these Q&A pairs from a Blue Yonder {fname} RFP.
+
+Available solution codes: {sol_list}
+
+Return a JSON array -- one object per pair, same order:
+[{{
+  "idx": <int>,
+  "category": "functional|technical|security|deployment|commercial|general",
+  "subcategory": "<snake_case topic>",
+  "tags": ["keyword1", "keyword2", "keyword3"],
+  "solution_codes": [<applicable codes, or [] if all solutions in family>],
+  "question_variants": ["alt phrasing 1", "alt phrasing 2"],
+  "question_generic": "<question rewritten without client-specific details>"
+}}]
+
+Category guide:
+  functional  -- Business capabilities, workflows, features, UI, processes, reporting
+  technical   -- Architecture, APIs, integrations, data model, performance, platform
+  security    -- Authentication, encryption, compliance certs, access control
+  deployment  -- SaaS hosting, environments, upgrade cadence, SLAs, go-live
+  commercial  -- BY licensing model (NOT client volumes, revenue)
+  general     -- Company overview, references (ONLY if nothing else fits)
+
+Q&A pairs:
+{items}
+
+Return ONLY valid JSON array."""
+
+        processor.add(key=f"batch_{i}", prompt=prompt)
+        batches.append((i, batch))
+
+    print(f"  Submitting {processor.count} classification batches to Batch API...")
+    result = processor.run(display_name="kb-classify", verbose=True)
+    print(f"  Batch API: {result.succeeded} succeeded, {result.failed} failed")
+
+    # Apply results
+    all_rows = []
+    for i, batch in batches:
+        key = f"batch_{i}"
+        if key in result.results:
+            try:
+                res = parse_json_from_batch(result.results[key])
+                if isinstance(res, list):
+                    for item in res:
+                        idx = item.get("idx", -1)
+                        if 0 <= idx < len(batch):
+                            batch[idx].update({
+                                "category":          item.get("category", "functional"),
+                                "subcategory":       item.get("subcategory", ""),
+                                "tags":              item.get("tags", []),
+                                "solution_codes":    item.get("solution_codes", []),
+                                "question_variants": item.get("question_variants", []),
+                                "question_generic":  item.get("question_generic", ""),
+                            })
+            except (ValueError, Exception) as e:
+                print(f"  [WARN] Parse failed for {key}: {e}")
+
+        # Default any unclassified rows
+        for r in batch:
+            r.setdefault("category", "functional")
+            r.setdefault("subcategory", "")
+            r.setdefault("tags", [])
+            r.setdefault("solution_codes", [])
+            r.setdefault("question_variants", [])
+            r.setdefault("question_generic", "")
+
+        all_rows.extend(batch)
+
+    return all_rows
+
+
 # ============================================================
 # SECTION 10 — STAGE 3c: INTERACTIVE REVIEW
 # ============================================================
@@ -836,7 +938,7 @@ def save_session(family_key: str, filename: str, reviewed: list,
         "timestamp": NOW_ISO,
     }
     with open(session_path(family_key), "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
+        json.dump(data, f, indent=2, ensure_ascii=False, cls=NumpyEncoder)
     print(f"\n  [SAVED] Use --resume to continue: --family {family_key} --resume")
 
 
@@ -1022,6 +1124,107 @@ def interactive_review_improve(classified: list[dict], existing: list[dict],
     return new_entries, improvements
 
 
+def auto_review_improve(classified: list[dict], existing: list[dict],
+                        existing_embs: list, family_key: str,
+                        filename: str, metadata: dict,
+                        structure: dict, model: str) -> tuple[list, list]:
+    """Auto IMPROVE mode using 5-stage answer selection. Returns (new_accepted, improvements)."""
+    print(f"\n[INFO] Embedding {len(classified)} historical questions...")
+    hist_embs   = embed_texts([r["question"] for r in classified])
+    new_entries  = []
+    improvements = []
+    audit_log    = []
+    decisions    = {"KEEP_EXISTING": 0, "REPLACE": 0, "ADD_NEW": 0}
+    llm_budget   = LLM_BUDGET_PER_FILE
+    total        = len(classified)
+    client_name  = metadata.get("client", "")
+
+    def _llm_call(prompt: str) -> str:
+        return call_llm(prompt, model)
+
+    for idx, (row, h_emb) in enumerate(zip(classified, hist_embs)):
+        best_i, best_s = find_best_match(h_emb, existing_embs)
+
+        if best_i == -1:
+            # No match in KB — add as new
+            new_entries.append(row)
+            entry = {
+                "index": idx,
+                "decision": "ADD_NEW",
+                "reason": f"No KB match (best sim: {best_s:.2f} < 0.80)",
+                "stage": "no_match",
+                "similarity": round(best_s, 4),
+            }
+            audit_log.append(entry)
+            decisions["ADD_NEW"] += 1
+            continue
+
+        exist = existing[best_i]
+        exist_q = exist.get("canonical_question", "") or exist.get("question", "")
+        exist_a = exist.get("canonical_answer", "")  or exist.get("answer", "")
+        exist_date = exist.get("last_updated", "") or exist.get("created_date", "")
+
+        result = select_answer(
+            existing_question=exist_q,
+            existing_answer=exist_a,
+            new_question=row["question"],
+            new_answer=row["answer"],
+            similarity=best_s,
+            llm_call=_llm_call,
+            client_name=client_name,
+            existing_date=exist_date,
+            new_date=metadata.get("date_estimated", ""),
+            llm_calls_remaining=llm_budget,
+        )
+
+        if result.get("llm_used"):
+            llm_budget -= 1
+
+        decision = result["decision"]
+        decisions[decision] = decisions.get(decision, 0) + 1
+
+        log_entry = {
+            "index": idx,
+            "existing_kb_id": exist.get("kb_id") or exist.get("id", "?"),
+            "similarity": round(best_s, 4),
+            "decision": decision,
+            "reason": result.get("reason", ""),
+            "stage": result.get("stage", ""),
+            "scores": result.get("scores"),
+            "llm_used": result.get("llm_used", False),
+        }
+        audit_log.append(log_entry)
+
+        if decision == "ADD_NEW":
+            new_entries.append(row)
+        elif decision == "REPLACE":
+            improvements.append({
+                "action": "replace",
+                "existing_kb_id": exist.get("kb_id") or exist.get("id"),
+                "similarity": round(best_s, 4),
+                "new_answer": row["answer"],
+                "source": row.get("source_file", filename),
+                "reason": result.get("reason", ""),
+                "stage": result.get("stage", ""),
+            })
+        # KEEP_EXISTING — no action needed
+
+        # Progress every 25 entries
+        if (idx + 1) % 25 == 0 or idx == total - 1:
+            print(f"  [{idx+1}/{total}] kept={decisions['KEEP_EXISTING']} "
+                  f"replace={decisions['REPLACE']} add={decisions['ADD_NEW']} "
+                  f"llm_budget={llm_budget}")
+
+    # Report
+    llm_used = LLM_BUDGET_PER_FILE - llm_budget
+    print_improve_report(decisions, audit_log, llm_used)
+
+    report_path = save_improve_report(audit_log, filename)
+    print(f"  [OK] Full audit log -> {report_path.name}")
+
+    return new_entries, improvements
+
+
 # ============================================================
 # SECTION 12 — STAGE 4: ENTRY BUILDER (CLEAN V2)
 # ============================================================
@@ -1079,13 +1282,13 @@ def archive_file(proc_path: Path, archived_name: str, metadata: dict,
     # Save structure
     struct_path = ARCHIVE_DIR / "extractions" / f"{stem}_structure.json"
     with open(struct_path, "w", encoding="utf-8") as f:
-        json.dump(structure, f, indent=2, ensure_ascii=False)
+        json.dump(structure, f, indent=2, ensure_ascii=False, cls=NumpyEncoder)
 
     # Save all extracted rows (before filtering) as JSONL
     ext_path = ARCHIVE_DIR / "extractions" / f"{stem}_extracted.jsonl"
     with open(ext_path, "w", encoding="utf-8") as f:
         for r in all_rows:
-            f.write(json.dumps(r, ensure_ascii=False) + "\n")
+            f.write(json.dumps(r, ensure_ascii=False, cls=NumpyEncoder) + "\n")
 
     # Update registry
     reg         = load_registry()
@@ -1143,7 +1346,9 @@ def get_inbox_files(family_key: str, specific: Optional[str]) -> list[Path]:
 def process_file(filepath: Path, family_key: str, family: dict,
                  model: str, is_improve: bool,
                  existing: list, existing_embs: list,
-                 resume_session: Optional[dict]) -> Optional[dict]:
+                 resume_session: Optional[dict],
+                 interactive: bool = False,
+                 batch_mode: bool = False) -> Optional[dict]:
     """Full pipeline for one file."""
     proc_dir = HISTORICAL_DIR / family_key / "processing"
     proc_dir.mkdir(exist_ok=True)
@@ -1226,15 +1431,25 @@ def process_file(filepath: Path, family_key: str, family: dict,
         print(f"\n  Anonymized '{client_name}' -> [Customer] in questions + answers")
 
     print(f"\n[STAGE 3] Classifying {len(kept)} rows with {model.upper()}...")
-    classified = classify_rows_batch(kept, family, model)
+    if batch_mode:
+        classified = classify_rows_batch_async(kept, family, model)
+    else:
+        classified = classify_rows_batch(kept, family, model)
 
-    print(f"\n[STAGE 3] Interactive review ({len(classified)} entries)...")
-    if is_improve:
+    if is_improve and not interactive:
+        print(f"\n[STAGE 3] Auto-review IMPROVE ({len(classified)} entries)...")
+        accepted, improvements = auto_review_improve(
+            classified, existing, existing_embs,
+            family_key, filepath.name, metadata, structure, model,
+        )
+    elif is_improve:
+        print(f"\n[STAGE 3] Interactive review ({len(classified)} entries)...")
         accepted, improvements = interactive_review_improve(
             classified, existing, existing_embs,
             family_key, filepath.name, metadata, structure,
         )
     else:
+        print(f"\n[STAGE 3] Interactive review ({len(classified)} entries)...")
         accepted = interactive_review(
             classified, family_key, filepath.name, metadata, structure,
             start_idx, prior_reviewed,
@@ -1274,7 +1489,7 @@ def process_file(filepath: Path, family_key: str, family: dict,
         imp_path = STAGING_DIR / f"{family_key}_improvements.jsonl"
         with open(imp_path, "a", encoding="utf-8") as f:
             for item in improvements:
-                f.write(json.dumps(item, ensure_ascii=False) + "\n")
+                f.write(json.dumps(item, ensure_ascii=False, cls=NumpyEncoder) + "\n")
         print(f"  {len(improvements)} improvement candidates -> {imp_path.name}")
 
     # Archive
@@ -1290,7 +1505,8 @@ def process_file(filepath: Path, family_key: str, family: dict,
 
 
 def run_family(family_key: str, model: str, resume: bool,
-               specific_file: Optional[str]) -> None:
+               specific_file: Optional[str], interactive: bool = False,
+               batch_mode: bool = False) -> None:
     family     = get_family(family_key)
     is_improve = family.get("phase", 1) == 2
 
@@ -1335,14 +1551,21 @@ def run_family(family_key: str, model: str, resume: bool,
     total = 0
     for f in files:
         result = process_file(f, family_key, family, model,
-                              is_improve, existing, existing_embs, resume_session)
+                              is_improve, existing, existing_embs, resume_session,
+                              interactive=interactive, batch_mode=batch_mode)
         if result:
             total += result["accepted"]
             resume_session = None
 
     if total:
         print(f"\n[DONE] {total} new entries added.")
-        print(f"       python src/kb_merge_canonical.py && python src/kb_embed_chroma.py")
+        print("[INFO] Syncing ChromaDB index...")
+        try:
+            from kb_index_sync import sync
+            sync()
+        except Exception as e:
+            print(f"[WARN] Auto-sync failed: {e}")
+            print("       Run manually: python src/kb_index_sync.py")
 
 
 # ============================================================
@@ -1372,9 +1595,14 @@ Examples:
                    help="Resume an interrupted review session")
     p.add_argument("--file",    default=None,
                    help="Process a specific Excel file instead of scanning inbox/")
+    p.add_argument("--interactive", action="store_true",
+                   help="Use interactive review for IMPROVE mode (default: auto-mode)")
+    p.add_argument("--batch", action="store_true",
+                   help="Use Gemini Batch API for classification (50%% cheaper, async)")
     args = p.parse_args()
 
-    run_family(args.family, args.model, args.resume, args.file)
+    run_family(args.family, args.model, args.resume, args.file,
+               interactive=args.interactive, batch_mode=args.batch)
 
 
 if __name__ == "__main__":

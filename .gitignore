@@ -79,6 +79,10 @@ data_kb/raw/
 data_kb/canonical/
 data_kb/archive_canonical/
 
+# --- Index sync state (machine-specific, generated) ---
+data/kb/file_state.json
+data/kb/file_state.tmp
+
 # --- VECTOR DATABASE (Generated Artifact) ---
 data/kb/chroma_store/
 data_kb/chroma_store/

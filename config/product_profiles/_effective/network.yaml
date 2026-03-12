@@ -1,0 +1,86 @@
+product: network
+display_name: Blue Yonder Network Design
+cloud_native: true
+deployment:
+- azure
+multi_tenant: null
+microservices: true
+uses_snowflake: null
+uses_pdc: true
+database: []
+apis:
+- rest
+- azure_blob
+security_protocols:
+- oauth2
+platform_services:
+  available:
+  - authentication
+  - automated_provisioning
+  - bulk_distribution
+  - bulk_ingestion
+  - runtime_environment
+  - streaming_distribution
+  - streaming_ingestion
+  not_available:
+  - alm
+  - api_management
+  - authorization
+  - bdm
+  - curated_data
+  - daas_archive
+  - daas_egress
+  - daas_reader_account
+  - data_share_app
+  - ml_studio
+  - user_experience_portal
+  - workflow_orchestrator
+  coming_soon: []
+  via_other: {}
+has_analytics: false
+has_ml_studio: false
+has_bdm: false
+has_workflow: false
+has_bulk_ingestion: true
+has_streaming: true
+has_data_share: false
+has_daas: false
+forbidden_claims:
+- Snowflake (as a direct data layer or specific integration point, beyond PDC)
+- SOAP APIs
+- GraphQL APIs
+- Platform service 'Alm' is not available for this product
+- Platform service 'Api Management' is not available for this product
+- Platform service 'Authorization' is not available for this product
+- Platform service 'Bdm' is not available for this product
+- Platform service 'Curated Data' is not available for this product
+- Platform service 'Daas Archive' is not available for this product
+- Platform service 'Daas Egress' is not available for this product
+- Platform service 'Daas Reader Account' is not available for this product
+- Platform service 'Data Share App' is not available for this product
+- Platform service 'Ml Studio' is not available for this product
+- Platform service 'User Experience Portal' is not available for this product
+- Platform service 'Workflow Orchestrator' is not available for this product
+key_facts:
+- '''Adaptive Execution Orchestration'' is enabled for Planning-Network Interoperability service function.'
+- Uses Platform Data Cloud for data exchange.
+- Uses adapters for interoperability.
+- Uses Identity and Access Management (IAM) as a company SaaS Resource.
+- Appears to act as a central integration hub for external systems
+- Runs on Virtual Machines (VMs), including Job Scheduler VM
+- Receives data from Platform Data Cloud.
+- Uses Oracle Cloud as a data source/destination
+- Writes data to the writeback layer
+- Data goes through validation and curation stages
+scalability_notes:
+- Supports maximum of 700,000 purchase order forecasts and 1,000,000 purchase order lines transferred from PDC to network
+  domain solutions.
+_meta:
+  generated_at: '2026-03-12T11:52:13.273123'
+  cke_sources:
+  - service_description
+  - architecture
+  matrix_source: platform_matrix.json
+  cke_fact_count: 38
+  platform_services_count: 7
+  status: draft

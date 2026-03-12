@@ -1,0 +1,84 @@
+product: control_tower
+display_name: Blue Yonder Control Tower
+cloud_native: true
+deployment:
+- azure
+multi_tenant: null
+microservices: true
+uses_snowflake: null
+uses_pdc: true
+database: []
+apis: []
+security_protocols: []
+platform_services:
+  available:
+  - api_management
+  - authentication
+  - curated_data
+  - streaming_distribution
+  - streaming_ingestion
+  - user_experience_portal
+  not_available:
+  - alm
+  - authorization
+  - automated_provisioning
+  - bdm
+  - bulk_distribution
+  - bulk_ingestion
+  - daas_archive
+  - daas_egress
+  - daas_reader_account
+  - data_share_app
+  - ml_studio
+  - runtime_environment
+  - workflow_orchestrator
+  coming_soon: []
+  via_other: {}
+has_analytics: false
+has_ml_studio: false
+has_bdm: false
+has_workflow: false
+has_bulk_ingestion: false
+has_streaming: true
+has_data_share: false
+has_daas: false
+forbidden_claims:
+- Snowflake (as a direct data layer or specific integration point, beyond PDC)
+- SOAP APIs
+- GraphQL APIs
+- Platform service 'Alm' is not available for this product
+- Platform service 'Authorization' is not available for this product
+- Platform service 'Automated Provisioning' is not available for this product
+- Platform service 'Bdm' is not available for this product
+- Platform service 'Bulk Distribution' is not available for this product
+- Platform service 'Bulk Ingestion' is not available for this product
+- Platform service 'Daas Archive' is not available for this product
+- Platform service 'Daas Egress' is not available for this product
+- Platform service 'Daas Reader Account' is not available for this product
+- Platform service 'Data Share App' is not available for this product
+- Platform service 'Ml Studio' is not available for this product
+- Platform service 'Runtime Environment' is not available for this product
+- Platform service 'Workflow Orchestrator' is not available for this product
+key_facts:
+- '''Control Tower Collaboration'' is enabled for Planning-Supplier Collaboration service function.'
+- '''Supply Chain Command Center (Planning)'' is enabled for Planning-Network Interoperability service function.'
+- Uses Platform Data Cloud for data exchange.
+- Uses adapters for interoperability.
+- Uses Identity and Access Management (IAM) as a company SaaS Resource.
+- A core component for control tower functionalities (referred to as LCT)
+- Receives data from Platform Data Cloud.
+- Consumes data from the writeback layer
+scalability_notes:
+- Supports maximum of 1 million purchase order forecasts and 200,000 purchase orders transferred from PDC to collaboration
+  domain solutions.
+- Supports maximum of 700,000 purchase order forecasts and 1,000,000 purchase order lines transferred from PDC to network
+  domain solutions.
+_meta:
+  generated_at: '2026-03-12T11:52:13.162339'
+  cke_sources:
+  - service_description
+  - architecture
+  matrix_source: platform_matrix.json
+  cke_fact_count: 27
+  platform_services_count: 6
+  status: draft

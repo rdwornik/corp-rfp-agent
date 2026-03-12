@@ -1,0 +1,61 @@
+product: logistics
+display_name: logistics
+cloud_native: true
+deployment: []
+multi_tenant: null
+microservices: null
+uses_snowflake: null
+uses_pdc: null
+database: []
+apis: []
+security_protocols: []
+platform_services:
+  available:
+  - alm
+  - api_management
+  - authentication
+  - automated_provisioning
+  - daas_archive
+  - daas_egress
+  - daas_reader_account
+  - ml_studio
+  - streaming_distribution
+  - streaming_ingestion
+  not_available:
+  - authorization
+  - bdm
+  - bulk_distribution
+  - bulk_ingestion
+  - curated_data
+  - data_share_app
+  - runtime_environment
+  - workflow_orchestrator
+  coming_soon:
+  - user_experience_portal
+  via_other: {}
+has_analytics: false
+has_ml_studio: true
+has_bdm: false
+has_workflow: false
+has_bulk_ingestion: false
+has_streaming: true
+has_data_share: false
+has_daas: true
+forbidden_claims:
+- Platform service 'Authorization' is not available for this product
+- Platform service 'Bdm' is not available for this product
+- Platform service 'Bulk Distribution' is not available for this product
+- Platform service 'Bulk Ingestion' is not available for this product
+- Platform service 'Curated Data' is not available for this product
+- Platform service 'Data Share App' is not available for this product
+- Platform service 'Runtime Environment' is not available for this product
+- Platform service 'Workflow Orchestrator' is not available for this product
+key_facts: []
+scalability_notes: []
+_meta:
+  generated_at: '2026-03-12T11:52:13.196251'
+  cke_sources: []
+  matrix_source: platform_matrix.json
+  cke_fact_count: 0
+  platform_services_count: 10
+  status: draft

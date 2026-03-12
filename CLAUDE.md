@@ -66,7 +66,13 @@ rfp-answer-engine/
 │
 ├── config/
 │   ├── anonymization.yaml             # Blocklist and session config
-│   └── platform_matrix.json           # Platform services matrix (from Excel)
+│   ├── platform_matrix.json           # Platform services matrix (from Excel)
+│   └── product_profiles/              # Product profile system
+│       ├── _generated/                # Auto from CKE + Matrix (safe to regenerate)
+│       ├── _overrides/                # Manual corrections (NEVER overwritten)
+│       ├── _effective/                # Merged profiles (pipeline reads ONLY here)
+│       ├── _changelog.jsonl           # Every change tracked
+│       └── _generation_report.json    # Audit trail
 │
 ├── data/
 │   ├── kb/
@@ -77,6 +83,7 @@ rfp-answer-engine/
 │   │   │   ├── RFP_Database_AIML_CANONICAL.json
 │   │   │   ├── RFP_Database_WMS_CANONICAL.json
 │   │   │   └── RFP_Database_UNIFIED_CANONICAL.json  # Merged
+│   │   ├── file_state.json            # Sync manifest (gitignored, machine-specific)
 │   │   └── chroma_store/              # ChromaDB vector index
 │   ├── input/                         # RFP input files (Excel/CSV)
 │   └── output/                        # Generated RFP answers
@@ -89,7 +96,12 @@ rfp-answer-engine/
 │   ├── kb_build_canonical.py          # Build KB from raw sources
 │   ├── kb_transform_knowledge.py      # Transform JSONL -> Canonical
 │   ├── kb_merge_canonical.py          # Merge all KBs into unified
-│   ├── kb_embed_chroma.py             # Index to ChromaDB
+│   ├── kb_index_sync.py              # ChromaDB incremental sync + Blue/Green rebuild
+│   ├── kb_embed_chroma.py             # [DEPRECATED] Full re-index (use kb_index_sync.py)
+│   ├── batch_llm.py                  # Gemini Batch API wrapper (50% cost)
+│   ├── generate_product_profiles.py  # Generate profiles from CKE + Matrix
+│   ├── merge_profiles.py             # Merge generated + overrides -> effective
+│   ├── validate_profiles.py          # Detect contradictions, missing data, auto-fix
 │   ├── excel_to_platform_matrix.py    # Convert Excel to platform_matrix.json
 │   ├── solution_filter.py             # Solution filtering utilities
 │   └── anonymization/                 # Anonymization package
@@ -136,8 +148,47 @@ python src/kb_transform_knowledge.py \
 # Merge all KBs
 python src/kb_merge_canonical.py
 
-# Re-index to ChromaDB
+# Sync ChromaDB index (incremental — only changed files)
+python src/kb_index_sync.py
+
+# See what would change without modifying ChromaDB
+python src/kb_index_sync.py --dry-run
+
+# Full safe rebuild (Blue/Green swap)
+python src/kb_index_sync.py --force-rebuild
+
+# [DEPRECATED] Full re-index (use kb_index_sync.py instead)
 python src/kb_embed_chroma.py
+
+# Reclassify KB (synchronous, default)
+python src/kb_reclassify.py --model gemini-flash
+
+# Reclassify KB (Batch API — 50% cheaper, async)
+python src/kb_reclassify.py --model gemini-3-flash-preview --batch
+
+# Extract historical (Batch API for classification)
+python src/kb_extract_historical.py --family wms --batch
+
+# Generate product profiles from CKE + platform matrix
+python src/generate_product_profiles.py --svc svc.json --arch arch.json
+python src/generate_product_profiles.py --product wms --dry-run
+
+# Merge generated + overrides → effective profiles
+python src/merge_profiles.py
+python src/merge_profiles.py --validate
+
+# Validate effective profiles (detect contradictions, missing data)
+python src/validate_profiles.py
+python src/validate_profiles.py --product wms
+
+# Auto-fix ERROR contradictions (generates override YAMLs)
+python src/validate_profiles.py --auto-fix
+
+# Auto-fix + re-merge effective profiles
+python src/validate_profiles.py --auto-fix --merge
+
+# Generate + merge in one step
+python src/generate_product_profiles.py --svc svc.json --arch arch.json --full
 
 # Run batch processor
 python src/rfp_batch_universal.py \
@@ -286,8 +337,8 @@ python src/kb_extract_historical.py --family planning
 # Resume interrupted review session
 python src/kb_extract_historical.py --family wms --resume
 
-# Re-merge and re-index after extraction
-python src/kb_merge_canonical.py && python src/kb_embed_chroma.py
+# Re-merge and re-index after extraction (auto-triggered by pipeline)
+python src/kb_merge_canonical.py && python src/kb_index_sync.py
 
 # Search the archive
 python src/kb_archive_search.py --list
@@ -336,6 +387,58 @@ This registry is the foundation for future cross-family analysis and model train
 - [ ] Update `kb_embed_chroma.py` to filter deprecated entries
 
 ## Recent Changes
+
+### 2026-03-12 — Profile Validation
+- **FEATURE:** `src/validate_profiles.py` — automatic profile quality checks
+  - 4 rule categories: CONTRADICTIONS (field vs forbidden_claims), MISSING DATA,
+    SUSPICIOUS INFERENCES (field claims not backed by key_facts), PLATFORM SERVICE CONSISTENCY
+  - `--auto-fix`: generates override YAMLs for ERROR-level contradictions
+  - `--auto-fix --merge`: auto-fix + re-merge effective profiles
+  - `--product`: validate single product
+  - ASCII table output with per-product errors/warnings/status
+- **TESTS:** 32 new tests in `tests/test_validate_profiles.py` (414 total)
+
+### 2026-03-12 — Product Profile System
+- **FEATURE:** `src/generate_product_profiles.py` + `src/merge_profiles.py`
+  - Auto-generates product profiles from CKE JSON extractions + platform_matrix.json
+  - Layered architecture: `_generated/` (safe to regenerate) + `_overrides/` (manual corrections) + `_effective/` (pipeline reads only here)
+  - Override merge: field replacement, `forbidden_claims_add/remove`, `platform_services_add/remove`
+  - Platform services from matrix → convenience booleans (has_analytics, has_bdm, etc.)
+  - CKE fact inference: cloud_native, microservices, uses_snowflake, uses_pdc, APIs, security
+  - Missing platform services auto-added to forbidden_claims
+  - Validation, conflict detection (override wins), changelog tracking
+  - `--dry-run`, `--diff`, `--product`, `--full` (generate+merge), `--validate`
+- **TESTS:** 52 new tests in `tests/test_product_profiles.py` (382 total)
+- Zero LLM calls — pure programmatic
+
+### 2026-03-12 — Gemini Batch API Support
+- **FEATURE:** `src/batch_llm.py` — Gemini Batch API wrapper for 50% cost reduction
+  - `BatchProcessor` class: add requests, submit, poll, extract results
+  - Auto-selects inline (<=100 requests) vs file upload (>100)
+  - `parse_json_from_batch()` — 3-strategy JSON parsing consistent with codebase
+  - Handles both inline and file-based result extraction
+- **INTEGRATION:** `--batch` flag added to:
+  - `kb_reclassify.py` — `llm_reclassify_async()` submits all batches as one job
+  - `kb_extract_historical.py` — `classify_rows_batch_async()` for Stage 3
+- **TESTS:** 27 new tests in `tests/test_batch_llm.py` (330 total)
+- Uses `google-genai` SDK (already in requirements.txt)
+
+### 2026-03-12 — ChromaDB Incremental Sync + Blue/Green Rebuild
+- **FEATURE:** `src/kb_index_sync.py` — new default way to update ChromaDB
+  - Incremental sync: tracks SHA-256 hashes in `data/kb/file_state.json`,
+    only re-embeds changed/new/deleted canonical files
+  - Blue/Green rebuild (`--force-rebuild`): builds new collection, validates,
+    then swaps — NEVER leaves live collection empty
+  - `--dry-run` flag to preview changes without modifying ChromaDB
+  - Indexes per-family canonical files (not UNIFIED), each vector tagged with `source_file`
+  - Deterministic vector IDs: hash of (filename + question)
+  - Embedding model version check: refuses incremental if model changed
+  - Atomic state writes (tmp + rename) for crash safety
+- **AUTO-TRIGGER:** `kb_extract_historical.py`, `kb_dedup.py`, `kb_reclassify.py`
+  now auto-call `sync()` after successful changes
+- **DEPRECATED:** `kb_embed_chroma.py` — prints deprecation warning, still works
+- **TESTS:** 49 new tests in `tests/test_kb_index_sync.py` (303 total)
+- Updated `.gitignore` for `file_state.json`
 
 ### 2026-02-19 (v2 — 3-stage pipeline)
 - **FEATURE:** KB Expansion 3-Stage Interactive Pipeline

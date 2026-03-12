@@ -27,6 +27,13 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
+# Load .env so API keys are available (matches other scripts in repo)
+try:
+    from dotenv import load_dotenv
+    load_dotenv(override=False)
+except ImportError:
+    pass
+
 # ---------------------------------------------------------------------------
 # Thresholds
 # ---------------------------------------------------------------------------
@@ -210,13 +217,15 @@ class BatchProcessor:
 
     def _submit_file(self, client, display_name):
         """Submit via JSONL file upload (>100 requests)."""
+        # JSONL lines need models/ prefix to match batches.create
+        model_ref = self._model if self._model.startswith("models/") else f"models/{self._model}"
         lines = []
         for req in self._requests:
             text = (req.system_prompt + "\n\n" + req.prompt) if req.system_prompt else req.prompt
             line = {
                 "key": req.key,
                 "request": {
-                    "model": self._model,
+                    "model": model_ref,
                     "contents": [{"role": "user", "parts": [{"text": text}]}],
                 },
             }
@@ -225,7 +234,7 @@ class BatchProcessor:
         tmp_path = Path(tempfile.mktemp(suffix=".jsonl"))
         try:
             tmp_path.write_text("\n".join(lines), encoding="utf-8")
-            uploaded = client.files.upload(file=str(tmp_path))
+            uploaded = client.files.upload(file=str(tmp_path), config={"mime_type": "application/jsonl"})
             logger.info("Uploaded JSONL: %s (%d requests)", uploaded.name, len(lines))
         finally:
             tmp_path.unlink(missing_ok=True)

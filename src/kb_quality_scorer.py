@@ -395,9 +395,12 @@ def score_entries(scope: Optional[str] = None,
         })
         path_map[entry_id] = path
 
-    # Score
+    # Score — batch API needs full model ID, not alias
     if batch_mode:
-        results = score_batch(entries_with_prompts, model=model)
+        batch_model = model
+        if batch_model == "gemini-flash":
+            batch_model = "gemini-3-flash-preview"
+        results = score_batch(entries_with_prompts, model=batch_model)
     else:
         results = score_sync(entries_with_prompts, model=model)
 

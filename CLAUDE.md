@@ -110,6 +110,7 @@ rfp-answer-engine/
 │   ├── merge_profiles.py             # Merge generated + overrides -> effective
 │   ├── validate_profiles.py          # Detect contradictions, missing data, auto-fix
 │   ├── kb_migrate_to_files.py        # Migrate canonical arrays -> individual files
+│   ├── kb_ingest.py                  # CKE facts -> draft KB entries (ingestion pipeline)
 │   ├── rfp_feedback.py               # Feedback CLI: correct/approve/reject/retag/propagate
 │   ├── excel_to_platform_matrix.py    # Convert Excel to platform_matrix.json
 │   ├── solution_filter.py             # Solution filtering utilities
@@ -213,6 +214,13 @@ python src/rfp_feedback.py retag KB_0234 --category functional
 python src/rfp_feedback.py propagate KB_0234 --dry-run
 python src/rfp_feedback.py log --last 20
 python src/rfp_feedback.py search "JSON ingestion" --family planning
+
+# KB Ingestion Pipeline — CKE facts to draft entries
+python src/kb_ingest.py --family wms --source architecture --svc svc.json --arch arch.json
+python src/kb_ingest.py --family wms --dry-run
+python src/kb_ingest.py --family wms --batch
+python src/kb_ingest.py --family wms --min-confidence 0.9
+python src/kb_ingest.py --family wms --fact "WMS supports REST API"
 
 # Generate + merge in one step
 python src/generate_product_profiles.py --svc svc.json --arch arch.json --full
@@ -414,6 +422,19 @@ This registry is the foundation for future cross-family analysis and model train
 - [ ] Update `kb_embed_chroma.py` to filter deprecated entries
 
 ## Recent Changes
+
+### 2026-03-12 — Knowledge Ingestion Pipeline
+- **FEATURE:** `src/kb_ingest.py` — automated CKE facts to KB draft entries
+  - 5-stage pipeline: Collect -> Generate Q&A -> Validate -> Dedup -> Write Drafts
+  - Loads CKE architecture facts (same JSONs as product profile generation)
+  - Scans project `facts.yaml` files for additional facts
+  - Clusters related facts by category + keyword overlap (1 Q&A per cluster)
+  - Gemini Flash for Q&A generation, Batch API support with `--batch`
+  - Profile validation: rejects entries violating forbidden_claims
+  - Embedding-based dedup against existing verified/ and drafts/
+  - Writes to `data/kb/drafts/{family}/KB_DRAFT_XXXX.json`
+  - `--dry-run`, `--min-confidence`, `--fact` (single-fact test mode)
+- **TESTS:** 39 new tests in `tests/test_kb_ingest.py` (493 total)
 
 ### 2026-03-12 — Feedback CLI + KB Directory Restructure
 - **FEATURE:** KB per-entry file system: `verified/`, `drafts/`, `rejected/` directories

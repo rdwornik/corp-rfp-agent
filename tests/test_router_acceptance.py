@@ -114,3 +114,58 @@ def test_model_registry():
 
     # Verify gemini points to pro model
     assert "pro" in MODELS["gemini"]["name"].lower() or "3.1" in MODELS["gemini"]["name"]
+
+
+# ---------------------------------------------------------------------------
+# Test 6: Sonnet alias in model registry
+# ---------------------------------------------------------------------------
+def test_models_dict_has_sonnet():
+    """Model registry has 'sonnet' alias pointing to claude-sonnet-4-6."""
+    from llm_router import MODELS
+
+    assert "sonnet" in MODELS
+    assert MODELS["sonnet"]["provider"] == "anthropic"
+    assert "sonnet-4-6" in MODELS["sonnet"]["name"]
+
+
+# ---------------------------------------------------------------------------
+# Test 7: Anthropic provider routing
+# ---------------------------------------------------------------------------
+def test_anthropic_provider_routing():
+    """Sonnet and claude keys route to anthropic provider."""
+    from llm_router import MODELS
+
+    assert MODELS["sonnet"]["provider"] == "anthropic"
+    assert MODELS["claude"]["provider"] == "anthropic"
+    assert MODELS["claude-opus"]["provider"] == "anthropic"
+    # All anthropic models should have claude in the name
+    for key in ("sonnet", "claude", "claude-opus"):
+        assert "claude" in MODELS[key]["name"]
+
+
+# ---------------------------------------------------------------------------
+# Test 8: Compare mode calls both models
+# ---------------------------------------------------------------------------
+def test_compare_mode_calls_both(monkeypatch):
+    """compare_models() calls generate_answer for each requested model."""
+    from unittest.mock import MagicMock, patch
+
+    calls = []
+
+    def fake_generate(self, query, model="gemini"):
+        calls.append(model)
+        return f"Answer from {model}"
+
+    # Patch LLMRouter.__init__ to avoid ChromaDB/file dependencies
+    with patch("llm_router.LLMRouter.__init__", return_value=None), \
+         patch("llm_router.LLMRouter.generate_answer", fake_generate):
+        from llm_router import compare_models
+        results = compare_models("test query", models=["gemini", "sonnet"])
+
+    assert "gemini" in calls
+    assert "sonnet" in calls
+    assert len(results) == 2
+    assert results["gemini"]["answer"] == "Answer from gemini"
+    assert results["sonnet"]["answer"] == "Answer from sonnet"
+    assert results["gemini"]["chars"] > 0
+    assert results["sonnet"]["elapsed"] >= 0

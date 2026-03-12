@@ -39,8 +39,9 @@ MODELS = {
     "gemini": {"name": "gemini-3.1-pro-preview", "provider": "google"},
     "gemini-flash": {"name": "gemini-3-flash-preview", "provider": "google"},
     # Anthropic
-    "claude": {"name": "claude-sonnet-4-5", "provider": "anthropic"},
-    "claude-opus": {"name": "claude-opus-4-5", "provider": "anthropic"},
+    "sonnet": {"name": "claude-sonnet-4-6", "provider": "anthropic"},
+    "claude": {"name": "claude-sonnet-4-6", "provider": "anthropic"},
+    "claude-opus": {"name": "claude-opus-4-6", "provider": "anthropic"},
     # OpenAI
     "gpt5": {"name": "gpt-5.2", "provider": "openai"},
     "o3": {"name": "o3", "provider": "openai"},
@@ -390,13 +391,71 @@ class LLMRouter:
             return f"Error: {str(e)}"
 
 
-if __name__ == "__main__":
+def compare_models(query: str, models: list[str] | None = None) -> dict:
+    """Run the same query through multiple models side by side.
+
+    Returns dict mapping model key to {answer, elapsed, chars}.
+    """
+    if models is None:
+        models = ["gemini", "sonnet"]
+
     router = LLMRouter()
-    
-    q = "How do you handle data encryption?"
-    answer = router.generate_answer(q, model="gemini")
-    
-    print("\n" + "="*50)
-    print("[ANSWER]")
-    print("="*50)
-    print(answer)
+    results = {}
+
+    for model_key in models:
+        if model_key not in MODELS:
+            print(f"[WARN] Unknown model: {model_key}")
+            continue
+        model_name = MODELS[model_key]["name"]
+        start = time.time()
+        answer = router.generate_answer(query, model=model_key)
+        elapsed = time.time() - start
+        results[model_key] = {
+            "model_name": model_name,
+            "answer": answer,
+            "elapsed": round(elapsed, 1),
+            "chars": len(answer),
+        }
+
+    # Print comparison
+    border = "=" * 60
+    print(f"\n{border}")
+    print("  Model Comparison")
+    print(border)
+    print(f"  Query: {query}")
+    print()
+    for key, r in results.items():
+        print(f"  --- {r['model_name']} ({r['elapsed']}s, {r['chars']} chars) ---")
+        print(f"  {r['answer'][:500]}")
+        if len(r["answer"]) > 500:
+            print(f"  ... ({r['chars'] - 500} more chars)")
+        print()
+    print(border)
+
+    return results
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="LLM Router -- generate answers via RAG")
+    parser.add_argument("--compare", action="store_true",
+                        help="Compare models side by side")
+    parser.add_argument("--query", "-q", type=str,
+                        default="How do you handle data encryption?",
+                        help="Query to answer")
+    parser.add_argument("--models", nargs="+", default=None,
+                        help="Models to compare (default: gemini sonnet)")
+    parser.add_argument("--model", "-m", default="gemini",
+                        help="Single model to use (default: gemini)")
+    args = parser.parse_args()
+
+    if args.compare:
+        compare_models(args.query, args.models)
+    else:
+        router = LLMRouter()
+        answer = router.generate_answer(args.query, model=args.model)
+        print("\n" + "=" * 50)
+        print("[ANSWER]")
+        print("=" * 50)
+        print(answer)

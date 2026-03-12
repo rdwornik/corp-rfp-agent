@@ -78,11 +78,18 @@ rfp-answer-engine/
 │   ├── kb/
 │   │   ├── raw/                       # Source files (JSONL from workshops)
 │   │   │   └── knowledge_wms.jsonl
-│   │   ├── canonical/                 # Transformed KB files
+│   │   ├── canonical/                 # Transformed KB files (backward compat)
 │   │   │   ├── RFP_Database_Cognitive_Planning_CANONICAL.json
 │   │   │   ├── RFP_Database_AIML_CANONICAL.json
 │   │   │   ├── RFP_Database_WMS_CANONICAL.json
 │   │   │   └── RFP_Database_UNIFIED_CANONICAL.json  # Merged
+│   │   ├── verified/                  # Production entries (1 JSON per entry)
+│   │   │   ├── planning/KB_0001.json
+│   │   │   ├── wms/
+│   │   │   └── ...
+│   │   ├── drafts/                    # Auto-generated, pending review
+│   │   ├── rejected/                  # Rejected with reason (audit trail)
+│   │   ├── feedback_log.jsonl         # Append-only feedback audit trail
 │   │   ├── file_state.json            # Sync manifest (gitignored, machine-specific)
 │   │   └── chroma_store/              # ChromaDB vector index
 │   ├── input/                         # RFP input files (Excel/CSV)
@@ -102,6 +109,8 @@ rfp-answer-engine/
 │   ├── generate_product_profiles.py  # Generate profiles from CKE + Matrix
 │   ├── merge_profiles.py             # Merge generated + overrides -> effective
 │   ├── validate_profiles.py          # Detect contradictions, missing data, auto-fix
+│   ├── kb_migrate_to_files.py        # Migrate canonical arrays -> individual files
+│   ├── rfp_feedback.py               # Feedback CLI: correct/approve/reject/retag/propagate
 │   ├── excel_to_platform_matrix.py    # Convert Excel to platform_matrix.json
 │   ├── solution_filter.py             # Solution filtering utilities
 │   └── anonymization/                 # Anonymization package
@@ -186,6 +195,24 @@ python src/validate_profiles.py --auto-fix
 
 # Auto-fix + re-merge effective profiles
 python src/validate_profiles.py --auto-fix --merge
+
+# Migrate canonical KB arrays to individual files
+python src/kb_migrate_to_files.py
+python src/kb_migrate_to_files.py --dry-run
+python src/kb_migrate_to_files.py --family planning
+
+# Feedback CLI — correct, approve, reject, retag, propagate
+python src/rfp_feedback.py show KB_0234
+python src/rfp_feedback.py correct KB_0234 --text "Remove JSON" --dry-run
+python src/rfp_feedback.py correct KB_0234 --text "Remove JSON" --apply
+python src/rfp_feedback.py correct KB_0234 --text "New answer" --offline --apply
+python src/rfp_feedback.py approve KB_1001
+python src/rfp_feedback.py reject KB_1001 --reason "Outdated"
+python src/rfp_feedback.py retag KB_0234 --product wms_native
+python src/rfp_feedback.py retag KB_0234 --category functional
+python src/rfp_feedback.py propagate KB_0234 --dry-run
+python src/rfp_feedback.py log --last 20
+python src/rfp_feedback.py search "JSON ingestion" --family planning
 
 # Generate + merge in one step
 python src/generate_product_profiles.py --svc svc.json --arch arch.json --full
@@ -387,6 +414,23 @@ This registry is the foundation for future cross-family analysis and model train
 - [ ] Update `kb_embed_chroma.py` to filter deprecated entries
 
 ## Recent Changes
+
+### 2026-03-12 — Feedback CLI + KB Directory Restructure
+- **FEATURE:** KB per-entry file system: `verified/`, `drafts/`, `rejected/` directories
+  - `src/kb_migrate_to_files.py` — migrates canonical JSON arrays to individual files
+  - Normalizes v1 (kb_id/canonical_question) and v2 (id/question) schemas
+  - Canonical files preserved for backward compatibility
+- **FEATURE:** `src/rfp_feedback.py` — Feedback CLI for KB management
+  - `correct` — LLM-assisted answer correction (Gemini Flash) with diff preview
+  - `approve` — moves drafts to verified (validates forbidden claims first)
+  - `reject` — moves to rejected with reason (audit trail)
+  - `retag` — change product/family or category (moves file to new dir)
+  - `propagate` — find similar entries needing same fix (ChromaDB similarity)
+  - `show` / `log` / `search` — inspect entries and feedback history
+  - `--dry-run` default for correct and propagate (safety first)
+  - Forbidden claims check on every approve and correct
+  - Append-only `feedback_log.jsonl` + per-entry `feedback_history[]`
+- **TESTS:** 40 new tests in `tests/test_rfp_feedback.py` (454 total)
 
 ### 2026-03-12 — Profile Validation
 - **FEATURE:** `src/validate_profiles.py` — automatic profile quality checks

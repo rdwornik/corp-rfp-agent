@@ -94,14 +94,61 @@ def load_effective_profile(family: str) -> Optional[dict]:
 # Stage 1: Collect facts
 # ---------------------------------------------------------------------------
 
+# Map effective profile family codes -> PRODUCT_NAME_MAP keys in
+# generate_product_profiles.py.  When a profile family code doesn't exist
+# directly in PRODUCT_NAME_MAP, this tells us which canonical key(s) to
+# look up instead.  Multiple keys means "collect facts from ALL of them"
+# (e.g. "planning" aggregates demand_planning + supply_planning).
+FAMILY_TO_CKE_KEYS: dict[str, list[str]] = {
+    # Planning umbrella -> both demand and supply
+    "planning":        ["demand_planning", "supply_planning"],
+    "planning_ibp":    ["ibp"],
+    "planning_pps":    ["supply_planning"],
+    # Retail families
+    "retail_mfp":      ["merchandise_planning"],
+    "retail_ar":       ["allocation_replenishment"],
+    "retail_demand_edge": ["forecasting_retail"],
+    # Category management
+    "catman":          ["category_management"],
+    "catman_assortment": ["assortment"],
+    "catman_space":    ["category_management"],
+    # SCP / sequencing
+    "scp":             ["flexis", "order_sequencing"],
+    "scp_sequencing":  ["order_sequencing"],
+    # Logistics
+    "logistics":       ["tms"],
+    # Commerce / OMS
+    "commerce":        ["oms"],
+    "commerce_orders": ["oms"],
+}
+
+
+def _resolve_cke_keys_for_family(family: str) -> list[str]:
+    """Return list of PRODUCT_NAME_MAP keys to look up for a family.
+
+    Uses FAMILY_TO_CKE_KEYS if the family isn't directly in PRODUCT_NAME_MAP.
+    """
+    from generate_product_profiles import PRODUCT_NAME_MAP
+
+    # Direct match — family IS a PRODUCT_NAME_MAP key
+    if family in PRODUCT_NAME_MAP:
+        return [family]
+
+    # Alias mapping
+    if family in FAMILY_TO_CKE_KEYS:
+        return FAMILY_TO_CKE_KEYS[family]
+
+    return []
+
+
 def load_architecture_facts(family: str,
                             svc_path: Optional[Path] = None,
                             arch_path: Optional[Path] = None) -> list[dict]:
     """Load architectural facts for a product from CKE extraction files."""
     from generate_product_profiles import PRODUCT_NAME_MAP, _resolve_cke_key
 
-    product_names = PRODUCT_NAME_MAP.get(family, [])
-    if not product_names:
+    cke_keys = _resolve_cke_keys_for_family(family)
+    if not cke_keys:
         return []
 
     facts = []
@@ -130,39 +177,41 @@ def load_architecture_facts(family: str,
         if not isinstance(products, dict):
             continue
 
-        cke_key = _resolve_cke_key(products, family)
-        if not cke_key:
-            continue
-
-        prod_data = products[cke_key]
-        source_name = path.name
-
-        for category, items in prod_data.items():
-            if category in SKIP_CATEGORIES:
+        # Resolve each CKE key against this file's products
+        for canonical_key in cke_keys:
+            cke_key = _resolve_cke_key(products, canonical_key)
+            if not cke_key:
                 continue
-            if not isinstance(items, list):
-                continue
-            for item in items:
-                if isinstance(item, dict):
-                    fact_text = item.get("fact", "")
-                    conf_str = item.get("confidence", "high")
-                else:
-                    fact_text = str(item)
-                    conf_str = "medium"
 
-                if not fact_text.strip():
+            prod_data = products[cke_key]
+            source_name = path.name
+
+            for category, items in prod_data.items():
+                if category in SKIP_CATEGORIES:
                     continue
+                if not isinstance(items, list):
+                    continue
+                for item in items:
+                    if isinstance(item, dict):
+                        fact_text = item.get("fact", "")
+                        conf_str = item.get("confidence", "high")
+                    else:
+                        fact_text = str(item)
+                        conf_str = "medium"
 
-                confidence = CONFIDENCE_MAP.get(conf_str, 0.75)
-                facts.append({
-                    "fact": fact_text.strip(),
-                    "source": source_name,
-                    "category": category,
-                    "products": [cke_key],
-                    "confidence": confidence,
-                    "fact_id": f"arch_{family}_{category}_{fact_idx:03d}",
-                })
-                fact_idx += 1
+                    if not fact_text.strip():
+                        continue
+
+                    confidence = CONFIDENCE_MAP.get(conf_str, 0.75)
+                    facts.append({
+                        "fact": fact_text.strip(),
+                        "source": source_name,
+                        "category": category,
+                        "products": [cke_key],
+                        "confidence": confidence,
+                        "fact_id": f"arch_{family}_{category}_{fact_idx:03d}",
+                    })
+                    fact_idx += 1
 
     return facts
 

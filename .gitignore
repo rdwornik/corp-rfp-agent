@@ -87,6 +87,9 @@ data/kb/feedback_log.jsonl
 data/kb/.fb_counter
 data/kb/health_history/
 data/kb/simulations/
+data/kb/review_packs/
+data/kb/processed_packs.jsonl
+data/kb/general_feedback_queue.jsonl
 
 # --- Index sync state (machine-specific, generated) ---
 data/kb/file_state.json

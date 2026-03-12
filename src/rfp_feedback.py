@@ -950,6 +950,166 @@ def _text_search(query: str, family: str | None = None,
 
 
 # ---------------------------------------------------------------------------
+# Usage tracking
+# ---------------------------------------------------------------------------
+
+def record_usage(entry_id: str) -> bool:
+    """Increment usage_count on an entry. Returns True if updated."""
+    path, _ = find_entry_dir(entry_id)
+    if not path:
+        return False
+
+    entry = load_entry(path)
+    entry["usage_count"] = entry.get("usage_count", 0) + 1
+    entry["last_used"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+    save_entry(entry, path)
+    return True
+
+
+# ---------------------------------------------------------------------------
+# Auto-promotion
+# ---------------------------------------------------------------------------
+
+COOLING_PERIOD_DAYS = 7
+MIN_USAGE_COUNT = 3
+MIN_QUALITY_AVERAGE = 4.0
+
+
+def check_promotion_eligibility(entry: dict, profile: dict) -> tuple[bool, list[str]]:
+    """Check if a draft entry meets ALL 6 criteria for auto-promotion.
+
+    Returns (eligible, list_of_reasons_why_not).
+    """
+    reasons = []
+
+    # 1. Must be a draft
+    if entry.get("confidence") != "draft":
+        reasons.append("not a draft")
+
+    # 2. Used in 3+ real RFPs
+    usage = entry.get("usage_count", 0)
+    if usage < MIN_USAGE_COUNT:
+        reasons.append(f"usage_count={usage} (need >={MIN_USAGE_COUNT})")
+
+    # 3. Zero corrections in feedback_history
+    history = entry.get("feedback_history", [])
+    corrections = [h for h in history if h.get("action") == "corrected"]
+    if corrections:
+        reasons.append(f"{len(corrections)} correction(s) in history")
+
+    # 4. No forbidden claim violations
+    answer = entry.get("answer", "")
+    violations = check_forbidden_claims(answer, profile)
+    if violations:
+        reasons.append(f"{len(violations)} forbidden claim violation(s)")
+
+    # 5. LLM quality score average >= 4.0
+    quality = entry.get("_quality", {})
+    avg = quality.get("average", 0)
+    if avg < MIN_QUALITY_AVERAGE:
+        reasons.append(f"quality avg={avg} (need >={MIN_QUALITY_AVERAGE})")
+
+    # 6. At least 7 days old (cooling period)
+    created = entry.get("generated_at") or entry.get("last_updated") or ""
+    if created:
+        try:
+            created_dt = datetime.fromisoformat(created.replace("Z", "+00:00"))
+            age_days = (datetime.now() - created_dt.replace(tzinfo=None)).days
+            if age_days < COOLING_PERIOD_DAYS:
+                reasons.append(f"age={age_days}d (need >={COOLING_PERIOD_DAYS}d)")
+        except (ValueError, TypeError):
+            reasons.append("cannot parse creation date")
+    else:
+        reasons.append("no creation date")
+
+    return (len(reasons) == 0, reasons)
+
+
+def cmd_auto_promote(dry_run: bool = True) -> int:
+    """Auto-promote qualifying drafts to verified."""
+    # Scan all drafts
+    if not DRAFTS_DIR.exists():
+        print("[INFO] No drafts directory")
+        return 0
+
+    drafts = []
+    for json_file in sorted(DRAFTS_DIR.rglob("*.json")):
+        try:
+            entry = load_entry(json_file)
+            entry["_path"] = str(json_file)
+            drafts.append(entry)
+        except (json.JSONDecodeError, OSError):
+            continue
+
+    if not drafts:
+        print("[INFO] No draft entries found")
+        return 0
+
+    print(f"[INFO] Checking {len(drafts)} drafts for auto-promotion...")
+
+    eligible = []
+    for entry in drafts:
+        family = entry.get("family_code", "")
+        profile = load_profile(family)
+        ok, reasons = check_promotion_eligibility(entry, profile)
+        if ok:
+            eligible.append(entry)
+        # In verbose/dry-run mode, show non-eligible too
+        elif dry_run and entry.get("usage_count", 0) >= 1:
+            entry_id = entry.get("id", "?")
+            print(f"  [SKIP] {entry_id}: {'; '.join(reasons)}")
+
+    if not eligible:
+        print("[INFO] No drafts meet all 6 promotion criteria")
+        return 0
+
+    print(f"\n[INFO] {len(eligible)} draft(s) eligible for auto-promotion:")
+    for entry in eligible:
+        entry_id = entry.get("id", "?")
+        family = entry.get("family_code", "?")
+        avg = entry.get("_quality", {}).get("average", 0)
+        usage = entry.get("usage_count", 0)
+        print(f"  {entry_id} ({family}) -- quality={avg}, usage={usage}")
+
+    if dry_run:
+        print(f"\n[DRY RUN] No changes made. Use --apply to promote.")
+        return 0
+
+    promoted = 0
+    for entry in eligible:
+        entry_id = entry.get("id", "?")
+        family = entry.get("family_code", "unknown")
+        old_path = Path(entry.pop("_path"))
+
+        entry["confidence"] = "verified"
+        entry["last_updated"] = _today()
+        entry.setdefault("feedback_history", []).append({
+            "action": "auto_promoted",
+            "timestamp": _now_iso(),
+            "reason": "Met all 6 auto-promotion criteria",
+        })
+
+        new_path = VERIFIED_DIR / family / f"{entry_id}.json"
+        save_entry(entry, new_path)
+        if old_path.exists():
+            old_path.unlink()
+
+        append_feedback_log({
+            "action": "auto_promote",
+            "entry_id": entry_id,
+            "from": "drafts",
+            "to": "verified",
+            "family": family,
+            "usage_count": entry.get("usage_count", 0),
+            "quality_avg": entry.get("_quality", {}).get("average", 0),
+        })
+        promoted += 1
+
+    print(f"\n[OK] {promoted} draft(s) promoted to verified/")
+    return 0
+
+
+# ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
@@ -1021,6 +1181,14 @@ Examples:
     p_search.add_argument("--family", help="Filter by family code")
     p_search.add_argument("--top", type=int, default=10, help="Max results")
 
+    # auto-promote
+    p_autopromote = sub.add_parser("auto-promote",
+                                    help="Auto-promote qualifying drafts")
+    p_autopromote.add_argument("--dry-run", action="store_true", default=True,
+                               help="Show eligible (default)")
+    p_autopromote.add_argument("--apply", action="store_true",
+                               help="Actually promote qualifying drafts")
+
     args = parser.parse_args()
 
     if not args.command:
@@ -1056,6 +1224,10 @@ Examples:
 
     elif args.command == "search":
         return cmd_search(args.query, family=args.family, top_k=args.top)
+
+    elif args.command == "auto-promote":
+        dry_run = not args.apply
+        return cmd_auto_promote(dry_run=dry_run)
 
     return 0
 

@@ -1,0 +1,256 @@
+{
+  "source_file": "Blue_Yonder_Warehouse_Management_Architecture_v2.docx",
+  "processed_at": "2026-03-12T21:00:00",
+  "source_date": "2024",
+  "source_reliability": "official_product_doc",
+  "products": {
+    "Blue Yonder WMS": {
+      "deployment": [
+        {
+          "fact": "Blue Yonder WMS is delivered as a SaaS service with 24x7x365 global operations, patching and updates, application and infrastructure support.",
+          "confidence": "high",
+          "polarity": "positive",
+          "locator": {"type": "section", "name": "Blue Yonder SaaS"}
+        },
+        {
+          "fact": "Blue Yonder WMS serves over 600 customers globally.",
+          "confidence": "high",
+          "polarity": "positive",
+          "locator": {"type": "section", "name": "Blue Yonder SaaS"}
+        },
+        {
+          "fact": "Blue Yonder WMS provides a named Technical Account Manager assigned to each customer account across all phases of the SaaS lifecycle.",
+          "confidence": "high",
+          "polarity": "positive",
+          "locator": {"type": "section", "name": "Blue Yonder SaaS"}
+        },
+        {
+          "fact": "Blue Yonder WMS offers a choice of availability SLAs: standard 99.7% uptime and elevated 99.95% uptime ('Active Availability').",
+          "confidence": "high",
+          "polarity": "positive",
+          "locator": {"type": "section", "name": "Blue Yonder SaaS"}
+        },
+        {
+          "fact": "Blue Yonder WMS provides disaster-tolerant deployment with deployment into two SaaS regions with data replication. If one region fails, the surviving region continues with no manual intervention.",
+          "confidence": "high",
+          "polarity": "positive",
+          "locator": {"type": "section", "name": "Blue Yonder SaaS"}
+        },
+        {
+          "fact": "Blue Yonder WMS provides a performance SLA where Blue Yonder is responsible for delivering agreed baseline performance in production.",
+          "confidence": "high",
+          "polarity": "positive",
+          "locator": {"type": "section", "name": "Blue Yonder SaaS"}
+        },
+        {
+          "fact": "Blue Yonder WMS uses a contracting model based on Business Metrics: named users, warehouse sites, and order lines per peak month.",
+          "confidence": "high",
+          "polarity": "positive",
+          "locator": {"type": "section", "name": "Blue Yonder SaaS"}
+        },
+        {
+          "fact": "Blue Yonder WMS is deployed on a single-tenant model as a deliberate choice, not because of technology restrictions. Customers are not forced to update when dictated by Blue Yonder, maintain a distinct security context and boundary, and can extend the solution.",
+          "confidence": "high",
+          "polarity": "positive",
+          "locator": {"type": "section", "name": "You are in control"}
+        },
+        {
+          "fact": "Blue Yonder WMS offers a 'fully versionless' option with automatic updates every 60/90 days, and a 'change freeze' capability to disable updates on schedule (e.g., no updates October through December).",
+          "confidence": "high",
+          "polarity": "positive",
+          "locator": {"type": "section", "name": "You are in control"}
+        },
+        {
+          "fact": "Blue Yonder WMS deployment manager automatically detects catastrophic failures in new deployments and rolls them back.",
+          "confidence": "high",
+          "polarity": "positive",
+          "locator": {"type": "section", "name": "You are in control"}
+        }
+      ],
+      "platform_integration": [
+        {
+          "fact": "Blue Yonder WMS takes an 'evolutionary' approach to cloud-native — retaining full functionality of the established product while progressively adding cloud-native capabilities like auto-scaling, zero-downtime updates, and multi-region deployment.",
+          "confidence": "high",
+          "polarity": "positive",
+          "locator": {"type": "section", "name": "You are in control"}
+        }
+      ],
+      "architecture": [
+        {
+          "fact": "Blue Yonder WMS is built on a rich component-based framework where business logic is implemented as discrete components, orchestrated into services, and executed within an application runtime container.",
+          "confidence": "high",
+          "polarity": "positive",
+          "locator": {"type": "section", "name": "Logical Architecture"}
+        },
+        {
+          "fact": "Blue Yonder WMS framework allows high extensibility through creation of new components scripted in Java or Blue Yonder's Domain Scripting Language (DSL), definition of new services, and interaction with external systems via web services.",
+          "confidence": "high",
+          "polarity": "positive",
+          "locator": {"type": "section", "name": "Logical Architecture"}
+        },
+        {
+          "fact": "Blue Yonder WMS supports 13 distinct user roles derived from real-life analysis of warehouse processes and operations.",
+          "confidence": "high",
+          "polarity": "positive",
+          "locator": {"type": "section", "name": "Functional architecture"}
+        },
+        {
+          "fact": "Blue Yonder WMS covers comprehensive end-to-end warehouse operations including receiving, putaway, inventory management, replenishment, picking, packing, shipping, and labour management.",
+          "confidence": "high",
+          "polarity": "positive",
+          "locator": {"type": "section", "name": "Functional architecture"}
+        }
+      ],
+      "data_layer": [
+        {
+          "fact": "Blue Yonder WMS Data Access Service provides free read-only access to production data replica via JDBC/ODBC and REST API, with historical retention up to 10 years and consolidation across multiple WMS instances.",
+          "confidence": "high",
+          "polarity": "positive",
+          "locator": {"type": "section", "name": "Integration to Analytics and Business Intelligence"}
+        }
+      ],
+      "apis": [
+        {
+          "fact": "Blue Yonder WMS provides public APIs covering all major areas of integration including ERP, Transportation Management, Order Orchestration/Sourcing/ATP, Master Data Management, Finance, and Warehouse Control Systems.",
+          "confidence": "high",
+          "polarity": "positive",
+          "locator": {"type": "section", "name": "Public APIs"}
+        },
+        {
+          "fact": "Blue Yonder WMS uses an API Catalog where all resource groups are listed, with each endpoint following standard REST conventions (GET/POST/PUT/DELETE).",
+          "confidence": "high",
+          "polarity": "positive",
+          "locator": {"type": "section", "name": "Public APIs"}
+        },
+        {
+          "fact": "Blue Yonder WMS exchanges messages via Platform Data Cloud (PDC) using Blue Yonder Data Model (BYDM) format. Data is validated both syntactically and semantically before processing.",
+          "confidence": "high",
+          "polarity": "positive",
+          "locator": {"type": "section", "name": "Integration"}
+        },
+        {
+          "fact": "Blue Yonder WMS integration is intrinsically real-time and event-driven, with processing at the moment of invocation. It integrates well into both batch-oriented and trickle-feed contexts.",
+          "confidence": "high",
+          "polarity": "positive",
+          "locator": {"type": "section", "name": "Integration with other enterprise systems"}
+        },
+        {
+          "fact": "Blue Yonder WMS standard integration templates cover: master data download, outbound order download, purchase order/receipt download, confirmation of receipt and shipment, upload of adjustments and statuses, and stock summary for reconciliation.",
+          "confidence": "high",
+          "polarity": "positive",
+          "locator": {"type": "section", "name": "Integration with other enterprise systems"}
+        },
+        {
+          "fact": "A middleware solution (ETL/ESB) is recommended to mediate between customer systems and Blue Yonder's suite. Customers prefer to exchange messages with middleware in their own/ERP format, which middleware translates into BYDM format.",
+          "confidence": "high",
+          "polarity": "positive",
+          "locator": {"type": "section", "name": "Integration"}
+        }
+      ],
+      "security": [
+        {
+          "fact": "Blue Yonder WMS security controls align with ISO27001, ISO27701, ISO22301 and are reviewed annually. Additionally SOC1 (Type 2) and SOC2 (Type 2) certifications are obtained.",
+          "confidence": "high",
+          "polarity": "positive",
+          "locator": {"type": "section", "name": "Security"}
+        },
+        {
+          "fact": "Blue Yonder WMS security includes: Dynamic and Static Application Security Testing (SQLi, XSS, CSRF), detection of vulnerabilities in open-source components, encryption of all data in transit and at rest, SSO and MFA federated to customer Identity Provider, IDS/IPS 24x7 network threat detection, and ACL access logging.",
+          "confidence": "high",
+          "polarity": "positive",
+          "locator": {"type": "section", "name": "Security"}
+        },
+        {
+          "fact": "Blue Yonder WMS backups are taken daily, encrypted before transmission, and retained offsite for 30 days.",
+          "confidence": "high",
+          "polarity": "positive",
+          "locator": {"type": "section", "name": "Security"}
+        },
+        {
+          "fact": "Access to Blue Yonder WMS SaaS deployments uses secure protocols (TLS) to encrypt all data in flight, with at-rest encryption of all data in storage.",
+          "confidence": "high",
+          "polarity": "positive",
+          "locator": {"type": "section", "name": "Security"}
+        }
+      ],
+      "scalability": [
+        {
+          "fact": "Blue Yonder WMS provides auto-scaling on workload bursts as part of its cloud-native evolution, with zero-downtime updates and multi-region deployment capabilities.",
+          "confidence": "high",
+          "polarity": "positive",
+          "locator": {"type": "section", "name": "You are in control"}
+        }
+      ],
+      "ui": [
+        {
+          "fact": "Blue Yonder WMS web-based GUI is touch-optimised for tablets, role-oriented with actionable dashboards for rapid issue identification and resolution, and highly extensible with new screens and configurable workflows.",
+          "confidence": "high",
+          "polarity": "positive",
+          "locator": {"type": "section", "name": "Logical Architecture"}
+        },
+        {
+          "fact": "Blue Yonder WMS task-oriented operator interface runs as an Android app for ruggedized terminals and supports the latest generation of voice-directed solutions.",
+          "confidence": "high",
+          "polarity": "positive",
+          "locator": {"type": "section", "name": "Logical Architecture"}
+        }
+      ],
+      "extensibility": [
+        {
+          "fact": "Blue Yonder WMS offers three levels of adaptation: Configuration (modify parameters via UI), Personalisation (bespoke terminology, dashboards, workflows), and Extensibility (augment business logic without modifying base code).",
+          "confidence": "high",
+          "polarity": "positive",
+          "locator": {"type": "section", "name": "Extensibility"}
+        },
+        {
+          "fact": "Blue Yonder WMS extensibility uses a component-based architecture analogous to Lego: discrete components (bricks) with consistent interfaces (studs), combined into services via metadata definitions (instruction booklet), executed in a runtime container.",
+          "confidence": "high",
+          "polarity": "positive",
+          "locator": {"type": "section", "name": "Extensibility"}
+        },
+        {
+          "fact": "Blue Yonder WMS extensibility techniques include: Triggers (extend existing services with additional components), new component creation (Java or DSL), and exposure of components as RESTful web services.",
+          "confidence": "high",
+          "polarity": "positive",
+          "locator": {"type": "section", "name": "Techniques"}
+        },
+        {
+          "fact": "Blue Yonder WMS discourages customisation (modification of base/source code) because it impedes upgrades. Instead, extensibility is achieved without customization through the component framework.",
+          "confidence": "high",
+          "polarity": "positive",
+          "locator": {"type": "section", "name": "Extensibility"}
+        },
+        {
+          "fact": "Blue Yonder WMS full extensibility features are available to Blue Yonder, customers, and partners equally.",
+          "confidence": "high",
+          "polarity": "positive",
+          "locator": {"type": "section", "name": "Techniques"}
+        }
+      ],
+      "robotics": [
+        {
+          "fact": "Blue Yonder WMS Robotics Hub provides pre-built integration to a long list of automation vendors, predefined workflows for common scenarios (picking, putaway, replenishment, transfer, pick assist, goods-to-person, packaging), and a single real-time dashboard for mixed fleet visibility.",
+          "confidence": "high",
+          "polarity": "positive",
+          "locator": {"type": "section", "name": "Integration to robots and AGVs"}
+        },
+        {
+          "fact": "Blue Yonder WMS Robotics Hub won an AI Breakthrough Award in the Robotic Process Automation category in 2021.",
+          "confidence": "high",
+          "polarity": "positive",
+          "locator": {"type": "section", "name": "Integration to robots and AGVs"}
+        },
+        {
+          "fact": "Blue Yonder WMS integrates with automated warehouse solutions including sorters, pick-to-light, put-to-light, conveyor systems, and includes capabilities to integrate to Warehouse Control Systems (WCS).",
+          "confidence": "high",
+          "polarity": "positive",
+          "locator": {"type": "section", "name": "Integration with other enterprise systems"}
+        }
+      ],
+      "not_supported": [
+        "Multi-tenant deployment (Blue Yonder deliberately uses single-tenant model)",
+        "Customisation of base/source code (discouraged, only extensibility supported)"
+      ]
+    }
+  }
+}

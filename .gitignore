@@ -85,6 +85,7 @@ data/kb/drafts/
 data/kb/rejected/
 data/kb/feedback_log.jsonl
 data/kb/.fb_counter
+data/kb/health_history/
 
 # --- Index sync state (machine-specific, generated) ---
 data/kb/file_state.json

@@ -90,6 +90,7 @@ rfp-answer-engine/
 │   │   ├── drafts/                    # Auto-generated, pending review
 │   │   ├── rejected/                  # Rejected with reason (audit trail)
 │   │   ├── feedback_log.jsonl         # Append-only feedback audit trail
+│   │   ├── health_history/            # Daily health snapshots (gitignored)
 │   │   ├── file_state.json            # Sync manifest (gitignored, machine-specific)
 │   │   └── chroma_store/              # ChromaDB vector index
 │   ├── input/                         # RFP input files (Excel/CSV)
@@ -111,6 +112,7 @@ rfp-answer-engine/
 │   ├── validate_profiles.py          # Detect contradictions, missing data, auto-fix
 │   ├── kb_migrate_to_files.py        # Migrate canonical arrays -> individual files
 │   ├── kb_ingest.py                  # CKE facts -> draft KB entries (ingestion pipeline)
+│   ├── kb_eval.py                    # KB health evaluation (deterministic, no LLM)
 │   ├── rfp_feedback.py               # Feedback CLI: correct/approve/reject/retag/propagate
 │   ├── excel_to_platform_matrix.py    # Convert Excel to platform_matrix.json
 │   ├── solution_filter.py             # Solution filtering utilities
@@ -221,6 +223,16 @@ python src/kb_ingest.py --family wms --dry-run
 python src/kb_ingest.py --family wms --batch
 python src/kb_ingest.py --family wms --min-confidence 0.9
 python src/kb_ingest.py --family wms --fact "WMS supports REST API"
+
+# KB Health Evaluation (deterministic, no LLM)
+python src/kb_eval.py
+python src/kb_eval.py --check contradictions
+python src/kb_eval.py --check coverage
+python src/kb_eval.py --check quality
+python src/kb_eval.py --check consistency
+python src/kb_eval.py --family wms
+python src/kb_eval.py --json > kb_health.json
+python src/kb_eval.py --compare data/kb/health_history/2026-03-12.json
 
 # Generate + merge in one step
 python src/generate_product_profiles.py --svc svc.json --arch arch.json --full
@@ -422,6 +434,16 @@ This registry is the foundation for future cross-family analysis and model train
 - [ ] Update `kb_embed_chroma.py` to filter deprecated entries
 
 ## Recent Changes
+
+### 2026-03-12 — KB Health Evaluation (Phase 3)
+- **FEATURE:** `src/kb_eval.py` — deterministic self-evaluation (zero LLM calls)
+  - 4 checks: CONTRADICTIONS (entries vs forbidden_claims), COVERAGE (capability gaps),
+    QUALITY (heuristic scoring 0-10), CONSISTENCY (missing fields, orphan families)
+  - Health score formula: 100 - contradictions*10 - gaps*2 - low_quality*0.5 - missing_fields*5
+  - `--json` for machine-readable output, `--compare` for delta vs previous
+  - `--check` for single check, `--family` for per-family filter
+  - History snapshots saved to `data/kb/health_history/` (gitignored)
+- **TESTS:** 34 new tests in `tests/test_kb_eval.py` (527 total)
 
 ### 2026-03-12 — Knowledge Ingestion Pipeline
 - **FEATURE:** `src/kb_ingest.py` — automated CKE facts to KB draft entries

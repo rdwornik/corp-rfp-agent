@@ -199,43 +199,85 @@ def check_forbidden_claims(answer: str, profile: dict) -> list[str]:
     for claim in forbidden:
         terms = _extract_check_terms(claim)
         for term in terms:
-            term_lower = term.lower()
-            if term_lower in answer_lower:
+            if _match_term_in_text(term, answer_lower):
                 # Check if the term is used in a negated context
-                context = _get_context(answer_lower, term_lower)
-                if not _is_negated(context, term_lower):
+                context = _get_context(answer_lower, term.lower())
+                if not _is_negated(context, term.lower()):
                     violations.append(
                         f"'{term}' in answer may violate: {claim}"
                     )
     return violations
 
 
+_STOP_WORDS = frozenset({
+    "available", "service", "product", "platform", "not", "does", "use",
+    "is", "the", "for", "this", "that", "with", "and", "or", "as", "in",
+    "of", "has", "have", "can", "will", "may", "a", "an", "are", "was",
+    "were", "been", "being", "be", "to", "from", "by", "on", "at", "it",
+    "its", "their", "same", "way", "directly", "natively",
+})
+
+
 def _extract_check_terms(claim: str) -> list[str]:
     """Extract key terms from a forbidden claim for checking.
 
-    e.g., "Does NOT use Snowflake" -> ["Snowflake"]
-    e.g., "Product is NOT cloud-native" -> ["cloud-native"]
+    Handles three patterns:
+    1. "Platform service 'X' is not available..." -> ["X"]
+    2. Bare claims: "GraphQL APIs" -> ["GraphQL APIs"]
+    3. Negation: "Does NOT use Snowflake" -> ["Snowflake"]
     """
     terms = []
 
-    # Pattern: "NOT <term>" or "not <term>"
-    matches = re.findall(r'(?:NOT|not|No|no)\s+(?:use\s+|support\s+|have\s+|offer\s+)?(\S+)', claim)
-    for m in matches:
-        cleaned = m.strip(".,;:'\"")
+    # Pattern 1: Platform service with quoted name
+    svc_match = re.search(r"Platform service\s+'([^']+)'", claim, re.IGNORECASE)
+    if svc_match:
+        terms.append(svc_match.group(1))
+        return terms
+
+    # Pattern 2: Bare technology claims (no negation)
+    if not re.search(r'\b(?:NOT|not|does not|do not|cannot|is not)\b', claim):
+        cleaned = claim.strip(".,;:'\" ")
         if len(cleaned) >= 3:
             terms.append(cleaned)
+        return terms
 
-    # Pattern: "does not have <term>" style
+    # Pattern 3: Negation claims
+    matches = re.findall(
+        r'(?:NOT|not)\s+(?:use\s+|support\s+|have\s+|offer\s+|integrated\s+with\s+)?(\S+)',
+        claim,
+    )
+    for m in matches:
+        cleaned = m.strip(".,;:'\"()")
+        if len(cleaned) < 4 and cleaned.upper() != cleaned:
+            continue
+        if cleaned.lower() in _STOP_WORDS:
+            continue
+        if cleaned not in terms:
+            terms.append(cleaned)
+
     matches2 = re.findall(
         r'(?:does not|do not|cannot|is not|are not)\s+\w+\s+(\w+(?:\s+\w+)?)',
         claim, re.IGNORECASE,
     )
     for m in matches2:
-        cleaned = m.strip(".,;:'\"")
-        if len(cleaned) >= 3 and cleaned not in terms:
+        cleaned = m.strip(".,;:'\"()")
+        if cleaned.lower() in _STOP_WORDS:
+            continue
+        if len(cleaned) < 4 and cleaned.upper() != cleaned:
+            continue
+        if cleaned not in terms:
             terms.append(cleaned)
 
     return terms
+
+
+def _match_term_in_text(term: str, text_lower: str) -> bool:
+    """Check if term appears in text using whole-word matching."""
+    term_lower = term.lower()
+    if " " in term_lower:
+        return term_lower in text_lower
+    pattern = r'\b' + re.escape(term_lower) + r'\b'
+    return bool(re.search(pattern, text_lower))
 
 
 def _get_context(text: str, term: str, window: int = 60) -> str:

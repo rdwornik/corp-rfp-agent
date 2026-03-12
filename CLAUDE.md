@@ -91,6 +91,7 @@ rfp-answer-engine/
 │   │   ├── rejected/                  # Rejected with reason (audit trail)
 │   │   ├── feedback_log.jsonl         # Append-only feedback audit trail
 │   │   ├── health_history/            # Daily health snapshots (gitignored)
+│   │   ├── simulations/              # Simulated RFP results (gitignored)
 │   │   ├── file_state.json            # Sync manifest (gitignored, machine-specific)
 │   │   └── chroma_store/              # ChromaDB vector index
 │   ├── input/                         # RFP input files (Excel/CSV)
@@ -111,9 +112,11 @@ rfp-answer-engine/
 │   ├── merge_profiles.py             # Merge generated + overrides -> effective
 │   ├── validate_profiles.py          # Detect contradictions, missing data, auto-fix
 │   ├── kb_migrate_to_files.py        # Migrate canonical arrays -> individual files
-│   ├── kb_ingest.py                  # CKE facts -> draft KB entries (ingestion pipeline)
+│   ├── kb_ingest.py                  # CKE facts -> draft KB entries (--all for bulk)
 │   ├── kb_eval.py                    # KB health evaluation (deterministic, no LLM)
-│   ├── rfp_feedback.py               # Feedback CLI: correct/approve/reject/retag/propagate
+│   ├── kb_quality_scorer.py          # LLM quality scorer (5 dimensions, Batch API)
+│   ├── kb_simulate_rfp.py            # Simulated RFP test suite (generate/answer/score)
+│   ├── rfp_feedback.py               # Feedback CLI + auto-promote + usage tracking
 │   ├── excel_to_platform_matrix.py    # Convert Excel to platform_matrix.json
 │   ├── solution_filter.py             # Solution filtering utilities
 │   └── anonymization/                 # Anonymization package
@@ -221,18 +224,28 @@ python src/rfp_feedback.py search "JSON ingestion" --family planning
 python src/kb_ingest.py --family wms --source architecture --svc svc.json --arch arch.json
 python src/kb_ingest.py --family wms --dry-run
 python src/kb_ingest.py --family wms --batch
-python src/kb_ingest.py --family wms --min-confidence 0.9
-python src/kb_ingest.py --family wms --fact "WMS supports REST API"
+python src/kb_ingest.py --all --source architecture --svc svc.json --arch arch.json
+python src/kb_ingest.py --all --dry-run
 
 # KB Health Evaluation (deterministic, no LLM)
 python src/kb_eval.py
 python src/kb_eval.py --check contradictions
-python src/kb_eval.py --check coverage
-python src/kb_eval.py --check quality
-python src/kb_eval.py --check consistency
 python src/kb_eval.py --family wms
 python src/kb_eval.py --json > kb_health.json
-python src/kb_eval.py --compare data/kb/health_history/2026-03-12.json
+
+# LLM Quality Scorer — 5-dimension evaluation
+python src/kb_quality_scorer.py --scope drafts
+python src/kb_quality_scorer.py --scope verified --sample 10
+python src/kb_quality_scorer.py --family wms --sync
+
+# Simulated RFP Test Suite — generate questions, answer via RAG, score
+python src/kb_simulate_rfp.py --family wms --count 50
+python src/kb_simulate_rfp.py --all --count 30
+python src/kb_simulate_rfp.py --family wms --count 10
+
+# Auto-promote qualifying drafts to verified
+python src/rfp_feedback.py auto-promote --dry-run
+python src/rfp_feedback.py auto-promote --apply
 
 # Generate + merge in one step
 python src/generate_product_profiles.py --svc svc.json --arch arch.json --full
@@ -434,6 +447,28 @@ This registry is the foundation for future cross-family analysis and model train
 - [ ] Update `kb_embed_chroma.py` to filter deprecated entries
 
 ## Recent Changes
+
+### 2026-03-12 — Phase 4: Scale Ingestion + LLM Quality + Simulation + Auto-Promote
+- **FEATURE:** `--all` flag for `kb_ingest.py` — bulk ingestion across all 41 families
+  - Scans `config/product_profiles/_effective/` for all profiles
+  - Runs 5-stage pipeline per family, skips families with 0 facts
+  - Prints bulk summary table: facts, generated, valid, drafts per family
+- **FEATURE:** `src/kb_quality_scorer.py` — LLM quality scoring (5 dimensions)
+  - Scores: ACCURACY, SPECIFICITY, TONE, COMPLETENESS, SELF_CONTAINED (0-5 each)
+  - Verdicts: EXCELLENT (>=4.5), GOOD (>=3.5), NEEDS_WORK (>=2.5), POOR (<2.5)
+  - Batch API default (50% cheaper), saves `_quality` field into entry JSON files
+  - `--scope drafts|verified`, `--family`, `--sample PCT`, `--sync`
+- **FEATURE:** `src/kb_simulate_rfp.py` — simulated RFP test suite
+  - 4-stage: generate questions from profile, answer via ChromaDB RAG, score accuracy, report
+  - Coverage by 10 topics (deployment, integration, security, etc.)
+  - Results saved to `data/kb/simulations/` (gitignored)
+  - `--family`, `--all` (active profiles), `--count`, `--batch`
+- **FEATURE:** `auto-promote` command in `rfp_feedback.py`
+  - 6 strict criteria: draft, 3+ usage, 0 corrections, no forbidden violations,
+    quality avg >= 4.0, 7-day cooling period
+  - `record_usage(entry_id)` for pipeline wiring (increments usage_count + last_used)
+  - `--dry-run` (default) / `--apply`
+- **TESTS:** 38 new tests (565 total): 13 quality scorer, 13 simulation, 12 auto-promote
 
 ### 2026-03-12 — KB Health Evaluation (Phase 3)
 - **FEATURE:** `src/kb_eval.py` — deterministic self-evaluation (zero LLM calls)

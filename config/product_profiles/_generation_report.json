@@ -1,9 +1,9 @@
 {
-  "timestamp": "2026-03-12T17:53:51.932410",
+  "timestamp": "2026-03-12T21:14:45.045876",
   "sources": {
     "svc": null,
     "arch": null,
-    "matrix": "C:\\Users\\1028120\\AppData\\Local\\Temp\\pytest-of-1028120\\pytest-49\\test_generate_single_product0\\platform_matrix.json"
+    "matrix": "C:\\Users\\1028120\\AppData\\Local\\Temp\\pytest-of-1028120\\pytest-63\\test_generate_single_product0\\platform_matrix.json"
   },
   "products_generated": [
     "wms"

@@ -834,13 +834,86 @@ def ingest(family: str, source: str = "architecture",
 # CLI
 # ---------------------------------------------------------------------------
 
+def ingest_all(source: str = "architecture",
+               min_confidence: float = 0.8,
+               batch_mode: bool = False, dry_run: bool = False,
+               model: str = "gemini-flash",
+               svc_path: Optional[Path] = None,
+               arch_path: Optional[Path] = None) -> list[dict]:
+    """Run ingestion pipeline for ALL families with effective profiles.
+
+    Returns list of per-family summary dicts.
+    """
+    import yaml
+
+    if not PROFILES_DIR.exists():
+        print(f"[ERROR] No profiles directory: {PROFILES_DIR}")
+        return []
+
+    families = sorted(
+        p.stem for p in PROFILES_DIR.glob("*.yaml")
+        if not p.name.startswith(".")
+    )
+
+    if not families:
+        print("[ERROR] No effective profiles found")
+        return []
+
+    print(f"[BULK] Found {len(families)} families with effective profiles")
+    print(f"{'='*66}")
+
+    summaries = []
+    for family in families:
+        print(f"\n--- {family} ---")
+        summary = ingest(
+            family=family,
+            source=source,
+            min_confidence=min_confidence,
+            batch_mode=batch_mode,
+            dry_run=dry_run,
+            model=model,
+            svc_path=svc_path,
+            arch_path=arch_path,
+        )
+        summaries.append(summary)
+
+    # Bulk summary
+    print(f"\n{'='*66}")
+    print(f"  Bulk Ingestion Summary")
+    print(f"{'='*66}")
+    print(f"  {'Family':<25} {'Facts':>6} {'Gen':>6} {'Valid':>6} {'Drafts':>6}")
+    print(f"  {'-'*25} {'-'*6} {'-'*6} {'-'*6} {'-'*6}")
+    total_facts = total_gen = total_valid = total_drafts = 0
+    for s in summaries:
+        facts = s["facts_collected"]
+        gen = s["entries_generated"]
+        valid = gen - s["profile_rejected"]
+        drafts = s["drafts_written"]
+        total_facts += facts
+        total_gen += gen
+        total_valid += valid
+        total_drafts += drafts
+        if facts > 0 or drafts > 0:
+            print(f"  {s['family']:<25} {facts:>6} {gen:>6} {valid:>6} {drafts:>6}")
+    skipped = sum(1 for s in summaries if s["facts_collected"] == 0)
+    print(f"  {'-'*25} {'-'*6} {'-'*6} {'-'*6} {'-'*6}")
+    print(f"  {'TOTAL':<25} {total_facts:>6} {total_gen:>6} {total_valid:>6} {total_drafts:>6}")
+    print(f"  Skipped (0 facts): {skipped}")
+    print(f"{'='*66}")
+
+    return summaries
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="KB Ingestion Pipeline -- CKE facts to draft KB entries",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("--family", required=True,
-                        help="Product family (e.g., wms, planning, logistics)")
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("--family",
+                       help="Product family (e.g., wms, planning, logistics)")
+    group.add_argument("--all", action="store_true", dest="all_families",
+                       help="Run ingestion for ALL families with effective profiles")
     parser.add_argument("--source", default="architecture",
                         choices=["architecture", "projects", "all"],
                         help="Fact source (default: architecture)")
@@ -863,17 +936,28 @@ def main():
     svc_path = Path(args.svc) if args.svc else None
     arch_path = Path(args.arch) if args.arch else None
 
-    ingest(
-        family=args.family,
-        source=args.source,
-        min_confidence=args.min_confidence,
-        batch_mode=args.batch,
-        dry_run=args.dry_run,
-        model=args.model,
-        svc_path=svc_path,
-        arch_path=arch_path,
-        single_fact=args.fact,
-    )
+    if args.all_families:
+        ingest_all(
+            source=args.source,
+            min_confidence=args.min_confidence,
+            batch_mode=args.batch,
+            dry_run=args.dry_run,
+            model=args.model,
+            svc_path=svc_path,
+            arch_path=arch_path,
+        )
+    else:
+        ingest(
+            family=args.family,
+            source=args.source,
+            min_confidence=args.min_confidence,
+            batch_mode=args.batch,
+            dry_run=args.dry_run,
+            model=args.model,
+            svc_path=svc_path,
+            arch_path=arch_path,
+            single_fact=args.fact,
+        )
 
 
 if __name__ == "__main__":

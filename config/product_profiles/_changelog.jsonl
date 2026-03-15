@@ -379,3 +379,12 @@
 {"timestamp": "2026-03-15T13:13:43.213339", "action": "generated", "product": "wms", "cke_fact_count": 0, "platform_services_count": 5, "cke_sources": []}
 {"timestamp": "2026-03-15T13:13:43.296496", "action": "merged", "product": "wms", "has_override": true, "override_fields": 4}
 {"timestamp": "2026-03-15T13:13:43.307404", "action": "merged", "product": "wms", "has_override": true, "override_fields": 4}
+{"timestamp": "2026-03-15T13:27:01.013012", "action": "generated", "product": "planning", "cke_fact_count": 0, "platform_services_count": 6, "cke_sources": []}
+{"timestamp": "2026-03-15T13:27:01.013012", "action": "generated", "product": "wms", "cke_fact_count": 0, "platform_services_count": 5, "cke_sources": []}
+{"timestamp": "2026-03-15T13:27:01.013012", "action": "generated", "product": "wms_native", "cke_fact_count": 0, "platform_services_count": 0, "cke_sources": []}
+{"timestamp": "2026-03-15T13:27:01.060595", "action": "generated", "product": "planning", "cke_fact_count": 0, "platform_services_count": 6, "cke_sources": []}
+{"timestamp": "2026-03-15T13:27:01.060595", "action": "generated", "product": "wms", "cke_fact_count": 14, "platform_services_count": 5, "cke_sources": ["service_description", "architecture"]}
+{"timestamp": "2026-03-15T13:27:01.060595", "action": "generated", "product": "wms_native", "cke_fact_count": 0, "platform_services_count": 0, "cke_sources": []}
+{"timestamp": "2026-03-15T13:27:01.085251", "action": "generated", "product": "wms", "cke_fact_count": 0, "platform_services_count": 5, "cke_sources": []}
+{"timestamp": "2026-03-15T13:27:01.175378", "action": "merged", "product": "wms", "has_override": true, "override_fields": 4}
+{"timestamp": "2026-03-15T13:27:01.184916", "action": "merged", "product": "wms", "has_override": true, "override_fields": 4}

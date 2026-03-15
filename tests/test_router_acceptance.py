@@ -1,16 +1,16 @@
-"""Acceptance tests for LLM router -- retry and error handling."""
+"""Acceptance tests for LLM router -- retry, error handling, and retrieval."""
 
 import sys
 import time
 from pathlib import Path
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
-from llm_router import retry_with_backoff
+from llm_router import retry_with_backoff, extract_question, extract_answer
 
 
 # ---------------------------------------------------------------------------
@@ -170,3 +170,116 @@ def test_compare_mode_calls_both(monkeypatch):
     assert results["sonnet"]["answer"] == "Answer from sonnet"
     assert results["gemini"]["chars"] > 0
     assert results["sonnet"]["elapsed"] >= 0
+
+
+# ---------------------------------------------------------------------------
+# Test 9: extract_question from markdown
+# ---------------------------------------------------------------------------
+def test_extract_question_from_markdown():
+    """extract_question() finds ## Question section in vault markdown."""
+    content = """---
+id: kb-rfp-wms-0001
+doc_type: rfp_response
+---
+
+## Question
+How does Blue Yonder handle warehouse integration?
+
+## Answer
+Blue Yonder WMS supports REST APIs for warehouse integration."""
+
+    result = extract_question(content)
+    assert result == "How does Blue Yonder handle warehouse integration?"
+
+
+def test_extract_question_fallback():
+    """extract_question() returns first non-header line when no ## Question."""
+    content = "Blue Yonder WMS supports REST APIs.\nMore details here."
+    result = extract_question(content)
+    assert result == "Blue Yonder WMS supports REST APIs."
+
+
+# ---------------------------------------------------------------------------
+# Test 10: extract_answer from markdown
+# ---------------------------------------------------------------------------
+def test_extract_answer_from_markdown():
+    """extract_answer() finds ## Answer section in vault markdown."""
+    content = """## Question
+How does Blue Yonder handle warehouse integration?
+
+## Answer
+Blue Yonder WMS supports REST APIs for warehouse integration.
+It also supports EDI and flat file interfaces."""
+
+    result = extract_answer(content)
+    assert "REST APIs" in result
+    assert "EDI" in result
+
+
+def test_extract_answer_fallback():
+    """extract_answer() returns full content when no ## Answer header."""
+    content = "Blue Yonder WMS supports REST APIs."
+    result = extract_answer(content)
+    assert result == "Blue Yonder WMS supports REST APIs."
+
+
+# ---------------------------------------------------------------------------
+# Test 11: retrieve_context uses vault primary
+# ---------------------------------------------------------------------------
+def test_get_context_from_vault():
+    """LLMRouter.retrieve_context() uses vault as primary retrieval."""
+    vault_notes = [
+        {
+            "note_id": 42,
+            "content": "## Question\nHow does WMS work?\n\n## Answer\nWMS handles warehouse ops.",
+            "topics": ["WMS"],
+            "products": ["wms"],
+            "relevance_score": 0.9,
+        }
+    ]
+
+    with patch("llm_router.LLMRouter.__init__", return_value=None), \
+         patch("llm_router.vault_retrieve", return_value=vault_notes):
+        from llm_router import LLMRouter
+        router = LLMRouter.__new__(LLMRouter)
+        router.family = "wms"
+        router.collection = None  # no ChromaDB
+        items = router.retrieve_context("warehouse operations", k=5)
+
+    assert len(items) == 1
+    assert items[0]["canonical_question"] == "How does WMS work?"
+    assert "warehouse ops" in items[0]["canonical_answer"]
+    assert items[0]["kb_id"] == "42"
+
+
+# ---------------------------------------------------------------------------
+# Test 12: retrieve_context falls back to ChromaDB
+# ---------------------------------------------------------------------------
+def test_get_context_fallback_to_chromadb():
+    """When vault fails, retrieve_context() falls back to ChromaDB."""
+    mock_collection = MagicMock()
+    mock_collection.query.return_value = {
+        "ids": [["planning_kb_0001"]],
+        "distances": [[0.3]],
+    }
+    kb_item = {
+        "kb_id": "kb_0001",
+        "canonical_question": "What is demand planning?",
+        "canonical_answer": "Demand planning forecasts future demand.",
+        "category": "Planning",
+        "subcategory": "Demand",
+        "domain": "planning",
+    }
+
+    with patch("llm_router.LLMRouter.__init__", return_value=None), \
+         patch("llm_router.vault_retrieve", side_effect=Exception("vault down")):
+        from llm_router import LLMRouter
+        router = LLMRouter.__new__(LLMRouter)
+        router.family = "planning"
+        router.collection = mock_collection
+        router.kb_lookup = {"planning_kb_0001": kb_item}
+        items = router.retrieve_context("demand planning", k=5)
+
+    assert len(items) == 1
+    assert items[0]["canonical_question"] == "What is demand planning?"
+    mock_collection.query.assert_called_once()

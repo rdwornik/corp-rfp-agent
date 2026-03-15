@@ -35,12 +35,19 @@ sys.path.insert(0, str(PROJECT_ROOT / "src"))
 from dotenv import load_dotenv
 load_dotenv(PROJECT_ROOT / ".env", override=True)
 
-import chromadb
-from chromadb.utils import embedding_functions
 from google import genai
 from google.genai import types
 
-from llm_router import MODELS, clean_bold_markdown, retry_with_backoff
+# ChromaDB — optional fallback
+try:
+    import chromadb
+    from chromadb.utils import embedding_functions
+    CHROMADB_AVAILABLE = True
+except ImportError:
+    CHROMADB_AVAILABLE = False
+
+from llm_router import MODELS, clean_bold_markdown, retry_with_backoff, extract_question, extract_answer
+from vault_adapter import retrieve as vault_retrieve
 
 # --- CONFIGURATION ---
 FAMILY_CONFIG_PATH = PROJECT_ROOT / "data/kb/schema/family_config.json"
@@ -261,36 +268,89 @@ def count_sections_recursive(sections: list) -> int:
 # --- KB RETRIEVAL ---
 
 class KBRetriever:
-    """Lightweight KB retriever for Word RFP answering."""
+    """KB retriever for Word RFP answering.
+
+    Primary: vault_adapter (corp CLI / SQLite FTS5).
+    Fallback: ChromaDB (kept during transition).
+    """
 
     def __init__(self):
-        print("[INFO] Connecting to ChromaDB...")
-        self.client_db = chromadb.PersistentClient(path=str(DB_PATH))
-        self.ef = embedding_functions.SentenceTransformerEmbeddingFunction(
-            model_name="BAAI/bge-large-en-v1.5"
-        )
-        self.collection = self.client_db.get_collection(
-            name=COLLECTION_NAME,
-            embedding_function=self.ef
-        )
-        print(f"[OK] ChromaDB connected ({self.collection.count()} entries)")
-
-        # Load KB for full answer lookup
-        with open(KB_JSON_PATH, "r", encoding="utf-8") as f:
-            raw_data = json.load(f)
+        # ChromaDB fallback (optional)
+        self.collection = None
         self.kb_lookup = {}
-        for item in raw_data:
-            kb_id = item.get("kb_id")
-            domain = item.get("domain", "")
-            if kb_id:
-                self.kb_lookup[kb_id] = item
-                if domain and not kb_id.startswith(f"{domain}_"):
-                    self.kb_lookup[f"{domain}_{kb_id}"] = item
+        self._init_chromadb_fallback()
+
+    def _init_chromadb_fallback(self):
+        """Attempt to load ChromaDB for fallback retrieval."""
+        if not CHROMADB_AVAILABLE:
+            print("[INFO] ChromaDB not available (optional fallback)")
+            return
+        try:
+            if not DB_PATH.exists():
+                return
+            client_db = chromadb.PersistentClient(path=str(DB_PATH))
+            ef = embedding_functions.SentenceTransformerEmbeddingFunction(
+                model_name="BAAI/bge-large-en-v1.5"
+            )
+            self.collection = client_db.get_collection(
+                name=COLLECTION_NAME, embedding_function=ef
+            )
+            print(f"[INFO] ChromaDB fallback: connected ({self.collection.count()} entries)")
+
+            if KB_JSON_PATH.exists():
+                with open(KB_JSON_PATH, "r", encoding="utf-8") as f:
+                    raw_data = json.load(f)
+                for item in raw_data:
+                    kb_id = item.get("kb_id")
+                    domain = item.get("domain", "")
+                    if kb_id:
+                        self.kb_lookup[kb_id] = item
+                        if domain and not kb_id.startswith(f"{domain}_"):
+                            self.kb_lookup[f"{domain}_{kb_id}"] = item
+        except Exception as exc:
+            print(f"[WARN] ChromaDB fallback init failed: {exc}")
 
     def query(self, text: str, family_code: str = None, k: int = 5) -> list:
-        """Query ChromaDB, optionally filtered by family/domain. Returns list of (item, distance)."""
-        results = self.collection.query(query_texts=[text], n_results=k)
+        """Query vault, falling back to ChromaDB. Returns list of (item, distance)."""
+        # --- Primary: vault retrieval ---
+        try:
+            products = [family_code] if family_code else None
+            notes = vault_retrieve(text, products=products, limit=k)
+            if notes:
+                return self._vault_notes_to_matches(notes, family_code, k)
+        except Exception:
+            pass  # fall through to ChromaDB
 
+        # --- Fallback: ChromaDB ---
+        return self._query_chromadb(text, family_code=family_code, k=k)
+
+    def _vault_notes_to_matches(self, notes: list[dict], family_code: str = None, k: int = 5) -> list:
+        """Convert vault notes to (item, distance) tuples matching ChromaDB format."""
+        matches = []
+        for n in notes:
+            content = n.get("content", "")
+            item = {
+                "kb_id": str(n.get("note_id", "")),
+                "canonical_question": extract_question(content),
+                "canonical_answer": extract_answer(content),
+                "category": ", ".join(n.get("topics", [])[:2]) if n.get("topics") else "",
+                "subcategory": "",
+                "domain": ", ".join(n.get("products", [])[:1]) if n.get("products") else "",
+                "family_code": ", ".join(n.get("products", [])[:1]) if n.get("products") else "",
+                "scope": "",
+            }
+            # Convert relevance_score (0-1, higher=better) to distance (lower=better)
+            score = n.get("relevance_score", 0.5)
+            distance = 1.0 - score
+            matches.append((item, distance))
+        return matches[:k]
+
+    def _query_chromadb(self, text: str, family_code: str = None, k: int = 5) -> list:
+        """ChromaDB fallback retrieval."""
+        if self.collection is None:
+            return []
+
+        results = self.collection.query(query_texts=[text], n_results=k)
         matches = []
         if results["ids"] and results["ids"][0]:
             ids = results["ids"][0]

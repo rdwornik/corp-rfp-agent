@@ -1,5 +1,9 @@
 import os
 import json
+import logging
+import re
+import time
+import random
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -8,8 +12,6 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 ENV_PATH = PROJECT_ROOT / ".env"
 load_dotenv(ENV_PATH, override=True)
 
-import chromadb
-from chromadb.utils import embedding_functions
 from google import genai
 from google.genai import types
 
@@ -25,6 +27,18 @@ try:
     OPENAI_AVAILABLE = True
 except ImportError:
     OPENAI_AVAILABLE = False
+
+# ChromaDB — optional fallback (being phased out in favour of vault)
+try:
+    import chromadb
+    from chromadb.utils import embedding_functions
+    CHROMADB_AVAILABLE = True
+except ImportError:
+    CHROMADB_AVAILABLE = False
+
+from vault_adapter import retrieve as vault_retrieve
+
+logger = logging.getLogger(__name__)
 
 # --- CONFIGURATION ---
 KB_JSON_PATH = PROJECT_ROOT / "data/kb/canonical/RFP_Database_UNIFIED_CANONICAL.json"
@@ -54,17 +68,14 @@ def load_system_prompt() -> str:
 
 def clean_bold_markdown(text: str) -> str:
     """Remove bold/italic markdown but keep list structure."""
-    import re
-    # Remove bold **text** → text
+    # Remove bold **text** -> text
     text = re.sub(r'\*\*(.+?)\*\*', r'\1', text)
-    # Remove italic *text* → text
+    # Remove italic *text* -> text
     text = re.sub(r'\*(.+?)\*', r'\1', text)
     # Remove headers
     text = re.sub(r'^#+\s+', '', text, flags=re.MULTILINE)
     return text.strip()
 
-import time
-import random
 
 def retry_with_backoff(func, max_retries=5, base_delay=2):
     """Retry a function with exponential backoff."""
@@ -82,6 +93,66 @@ def retry_with_backoff(func, max_retries=5, base_delay=2):
                 raise  # Re-raise non-rate-limit errors
     raise Exception(f"Max retries ({max_retries}) exceeded")
 
+
+# ---------------------------------------------------------------------------
+# Vault note content parsing helpers
+# ---------------------------------------------------------------------------
+
+def extract_question(content: str) -> str:
+    """Extract the ## Question section from vault markdown content."""
+    match = re.search(
+        r'^##\s+Question\s*\n(.*?)(?=^##\s|\Z)',
+        content, re.MULTILINE | re.DOTALL,
+    )
+    if match:
+        return match.group(1).strip()
+    # Fallback: if no ## Question header, return first non-empty line
+    for line in content.splitlines():
+        stripped = line.strip()
+        if stripped and not stripped.startswith("---") and not stripped.startswith("#"):
+            return stripped
+    return ""
+
+
+def extract_answer(content: str) -> str:
+    """Extract the ## Answer section from vault markdown content."""
+    match = re.search(
+        r'^##\s+Answer\s*\n(.*?)(?=^##\s|\Z)',
+        content, re.MULTILINE | re.DOTALL,
+    )
+    if match:
+        return match.group(1).strip()
+    # Fallback: return everything after ## Question block (or full content)
+    q_end = re.search(r'^##\s+Question\s*\n.*?(?=^##\s|\Z)', content, re.MULTILINE | re.DOTALL)
+    if q_end:
+        remainder = content[q_end.end():].strip()
+        # Strip any remaining ## headers
+        remainder = re.sub(r'^##\s+\w+\s*\n', '', remainder, flags=re.MULTILINE).strip()
+        if remainder:
+            return remainder
+    return content.strip()
+
+
+def _vault_notes_to_kb_items(notes: list[dict]) -> list[dict]:
+    """Convert vault note dicts to the KB item format that format_context() expects."""
+    items = []
+    for n in notes:
+        content = n.get("content", "")
+        items.append({
+            "kb_id": str(n.get("note_id", "")),
+            "category": ", ".join(n.get("topics", [])[:2]) if n.get("topics") else "",
+            "subcategory": "",
+            "canonical_question": extract_question(content),
+            "canonical_answer": extract_answer(content),
+            "domain": ", ".join(n.get("products", [])[:1]) if n.get("products") else "",
+        })
+    return items
+
+
+# ---------------------------------------------------------------------------
+# LLMRouter
+# ---------------------------------------------------------------------------
+
 class LLMRouter:
     def __init__(self, solution: str = None):
         print("[INFO] Initializing Universal LLM Router...")
@@ -93,90 +164,92 @@ class LLMRouter:
         self.system_prompt_template = load_system_prompt()
         print(f"[SUCCESS] Loaded prompt from: {SYSTEM_PROMPT_PATH.name}")
 
-        # Load KB lookup with multiple key formats for backward compatibility
-        with open(KB_JSON_PATH, 'r', encoding='utf-8') as f:
-            raw_data = json.load(f)
-            self.kb_lookup = {}
+        # ChromaDB fallback: load KB lookup + connect (optional)
+        self.kb_lookup = {}
+        self.collection = None
+        self._init_chromadb_fallback()
 
-            for item in raw_data:
-                kb_id = item.get("kb_id")
-                domain = item.get("domain", "")
+    def _init_chromadb_fallback(self):
+        """Attempt to load ChromaDB + KB JSON for fallback retrieval."""
+        if not CHROMADB_AVAILABLE:
+            print("[INFO] ChromaDB not available (optional fallback)")
+            return
 
-                # Store with original kb_id
-                if kb_id:
-                    self.kb_lookup[kb_id] = item
+        try:
+            if KB_JSON_PATH.exists():
+                with open(KB_JSON_PATH, 'r', encoding='utf-8') as f:
+                    raw_data = json.load(f)
+                for item in raw_data:
+                    kb_id = item.get("kb_id")
+                    domain = item.get("domain", "")
+                    if kb_id:
+                        self.kb_lookup[kb_id] = item
+                        if domain and not kb_id.startswith(f"{domain}_"):
+                            self.kb_lookup[f"{domain}_{kb_id}"] = item
+                print(f"[INFO] ChromaDB fallback: loaded {len(raw_data)} KB entries")
 
-                    # Also store with domain-prefixed version for ChromaDB compatibility
-                    # Handle both legacy (kb_0001) and new (wms_0001) formats
-                    if domain:
-                        # If kb_id doesn't already have domain prefix, add it
-                        if not kb_id.startswith(f"{domain}_"):
-                            prefixed_id = f"{domain}_{kb_id}"
-                            self.kb_lookup[prefixed_id] = item
-
-        print(f"[SUCCESS] Loaded {len(raw_data)} KB entries from unified database")
-        if DEBUG:
-            print(f"[DEBUG] Total lookup keys (with domain prefixes): {len(self.kb_lookup)}")
-
-        # Connect to ChromaDB
-        self.client_db = chromadb.PersistentClient(path=str(DB_PATH))
-        self.ef = embedding_functions.SentenceTransformerEmbeddingFunction(
-            model_name="BAAI/bge-large-en-v1.5"
-        )
-        self.collection = self.client_db.get_collection(
-            name=COLLECTION_NAME,
-            embedding_function=self.ef
-        )
-        print(f"[SUCCESS] Connected to ChromaDB: {COLLECTION_NAME}")
+            if DB_PATH.exists():
+                client_db = chromadb.PersistentClient(path=str(DB_PATH))
+                ef = embedding_functions.SentenceTransformerEmbeddingFunction(
+                    model_name="BAAI/bge-large-en-v1.5"
+                )
+                self.collection = client_db.get_collection(
+                    name=COLLECTION_NAME, embedding_function=ef
+                )
+                print(f"[INFO] ChromaDB fallback: connected to {COLLECTION_NAME}")
+        except Exception as exc:
+            logger.warning("ChromaDB fallback init failed: %s", exc)
 
     def retrieve_context(self, query, k=8):
-        """
-        Retrieve relevant KB entries for a query.
+        """Retrieve relevant KB entries for a query.
+
+        Primary: vault_adapter.retrieve (corp CLI / SQLite FTS5).
+        Fallback: ChromaDB (kept during transition).
 
         Returns list of KB items (dicts with canonical_question, canonical_answer, etc.)
         """
+        # --- Primary: vault retrieval ---
+        try:
+            products = [self.family] if self.family else None
+            notes = vault_retrieve(query, products=products, limit=k)
+            if notes:
+                if DEBUG:
+                    print(f"[DEBUG] Vault returned {len(notes)} notes for: {query[:60]}")
+                return _vault_notes_to_kb_items(notes)
+        except Exception as exc:
+            logger.warning("Vault retrieval failed: %s, trying ChromaDB fallback", exc)
+
+        # --- Fallback: ChromaDB ---
+        return self._retrieve_chromadb(query, k=k)
+
+    def _retrieve_chromadb(self, query, k=8):
+        """ChromaDB fallback retrieval (transition period)."""
+        if self.collection is None:
+            if DEBUG:
+                print("[DEBUG] No ChromaDB collection available")
+            return []
+
         results = self.collection.query(query_texts=[query], n_results=k)
         found_items = []
 
         if DEBUG:
-            print(f"\n[DEBUG] === RAG Retrieval ===")
+            print(f"\n[DEBUG] === ChromaDB Fallback Retrieval ===")
             print(f"[DEBUG] Query: {query}")
-            print(f"[DEBUG] Requested k={k} results")
 
         if results['ids'] and len(results['ids']) > 0:
             chroma_ids = results['ids'][0]
             distances = results['distances'][0] if 'distances' in results else [None] * len(chroma_ids)
 
-            if DEBUG:
-                print(f"[DEBUG] ChromaDB returned {len(chroma_ids)} IDs")
-
             for i, chroma_id in enumerate(chroma_ids):
-                distance = distances[i]
-
-                if DEBUG:
-                    print(f"[DEBUG] {i+1}. ChromaDB ID: {chroma_id} | Distance: {distance}")
-
-                # Lookup in KB dictionary
                 if chroma_id in self.kb_lookup:
-                    item = self.kb_lookup[chroma_id]
-                    found_items.append(item)
+                    found_items.append(self.kb_lookup[chroma_id])
 
                     if DEBUG:
-                        domain = item.get('domain', 'N/A')
-                        kb_id = item.get('kb_id', 'N/A')
-                        question = item.get('canonical_question', '')[:60]
-                        print(f"[DEBUG]    [OK] Found: domain={domain} | kb_id={kb_id} | Q={question}...")
-                else:
-                    if DEBUG:
-                        print(f"[DEBUG]    [FAIL] NOT FOUND in kb_lookup! (ID: {chroma_id})")
+                        item = self.kb_lookup[chroma_id]
+                        print(f"[DEBUG] {i+1}. {chroma_id} | dist={distances[i]}")
 
-            if DEBUG:
-                print(f"[DEBUG] Total items retrieved: {len(found_items)}/{k}")
-                print(f"[DEBUG] === End RAG Retrieval ===\n")
-        else:
-            if DEBUG:
-                print(f"[DEBUG] ChromaDB returned NO results!")
-                print(f"[DEBUG] === End RAG Retrieval ===\n")
+        if DEBUG:
+            print(f"[DEBUG] ChromaDB fallback retrieved: {len(found_items)}/{k}")
 
         return found_items
 

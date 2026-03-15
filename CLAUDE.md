@@ -1,82 +1,72 @@
-# Corp RFP Agent - Project Context
+# CLAUDE.md -- corp-rfp-agent
 
-> Context for Claude Code. Update after significant changes.
+## What this repo does
 
-## Overview
+AI-powered RFP answering engine for Blue Yonder pre-sales. Reads Excel (green-highlighted cells) or Word documents, retrieves relevant knowledge from the vault, generates professional answers via LLM, and writes them back into the original file format.
 
-AI-powered RFP answering system for Blue Yonder solutions.
+## Quick start
 
-**Core Flow:**
-```
-RFP (Excel/Word) -> Anonymize -> Vault Retrieval -> LLM Generation -> De-anonymize -> Answers
+```bash
+pip install -e ".[dev]"           # install deps from pyproject.toml
+cp .env.example .env              # add GEMINI_API_KEY at minimum
+python -m pytest                  # 151 tests, all should pass
 ```
 
 ## Architecture
 
-- **Retrieval:** Vault FTS5 full-text search (via vault_adapter.py)
-- **LLM Router:** 4 models, 3 providers (Gemini, Claude, OpenAI)
-- **Anonymization:** YAML-based blocklist with middleware pattern
-- **Profiles:** 41 product profiles with forbidden_claims guardrails
-
-## File Structure
-
 ```
-src/
-  rfp_excel_agent.py       # Excel RFP agent (green-cell detection)
-  rfp_answer_word.py        # Word RFP agent (section tree parsing)
-  llm_router.py             # Multi-LLM routing (gemini, sonnet, gpt, gemini-flash)
-  vault_adapter.py          # Knowledge retrieval (vault CLI + SQLite fallback)
-  answer_selector.py        # 5-stage answer quality scoring
-  rfp_feedback.py           # KB corrections CLI (show, correct, search)
-  validate_profiles.py      # Product profile validation (contradictions, missing data)
-  kb_to_markdown.py         # KB JSON -> markdown migration
-  anonymization/            # Client name masking package
-    config.py               #   YAML loader
-    core.py                 #   anonymize(), deanonymize()
-    middleware.py            #   Pipeline middleware
-    scan_kb.py               #   CLI: scan KB for sensitive terms
-    clean_kb.py              #   CLI: clean KB with backup
-
-config/
-  product_profiles/         # Per-family YAML profiles
-    _generated/             #   Auto from CKE (safe to regenerate)
-    _overrides/             #   Manual corrections (NEVER overwritten)
-    _effective/             #   Merged (pipeline reads ONLY here)
-  anonymization.yaml        # Blocklist config
-  overrides.yaml            # Term replacements (JDA -> Blue Yonder)
-  platform_matrix.json      # Platform services per solution
-
-data/kb/
-  verified/{family}/        # 1,155 production entries (JSON, backup)
-  drafts/{family}/          # 174 draft entries
-  canonical/                # Legacy canonical files (backward compat)
-
-prompts/
-  rfp_system_prompt_universal.txt
-
-tests/                      # 151 tests across 8 test files
+RFP file (Excel/Word)
+    |
+    v
+Anonymize (config/anonymization.yaml)
+    |
+    v
+Retrieve context (vault_adapter.py -> vault FTS5 / ChromaDB fallback)
+    |
+    v
+Generate answer (llm_router.py -> Gemini / Claude / GPT)
+    |
+    v
+De-anonymize + write back to file
 ```
 
-## Key Commands
+**Entry points:**
+- `src/rfp_excel_agent.py` -- Excel RFP agent (green-cell detection)
+- `src/rfp_answer_word.py` -- Word RFP agent (section tree parsing)
+- `src/llm_router.py` -- LLM routing + compare mode (also CLI)
+
+**Core modules:**
+- `src/vault_adapter.py` -- knowledge retrieval (vault CLI + SQLite FTS5 fallback)
+- `src/answer_selector.py` -- 5-stage answer quality scoring for IMPROVE mode
+- `src/anonymization/` -- client name masking (YAML blocklist)
+
+**Utilities:**
+- `src/rfp_feedback.py` -- KB corrections CLI (show, correct, search)
+- `src/validate_profiles.py` -- product profile validation (contradictions, missing data)
+- `src/kb_to_markdown.py` -- one-time KB JSON to markdown migration
+
+## Dev standards
+
+- Python 3.12+, Windows-first (paths via `pathlib`)
+- `pyproject.toml` as single source of truth (no `requirements.txt`)
+- `ruff` lint + format, `pytest` quality gate
+- Feature branches, no deletions without asking
+- E402 suppressed globally (load_dotenv must run before env-dependent imports)
+- Rollback tag: `v1.0-full-system` has the full pre-simplification codebase
+
+## Key commands
 
 ```bash
 # Answer RFP Excel (green-cell detection)
-python src/rfp_excel_agent.py \
-    --input "RFP.xlsx" \
-    --client acme \
-    --solution planning \
-    --model gemini
+python src/rfp_excel_agent.py --input "RFP.xlsx" --client acme --solution planning --model gemini
 
 # Answer RFP Word doc
-python src/rfp_answer_word.py \
-    --input "RFP.docx" \
-    --solution wms \
-    --model gemini
+python src/rfp_answer_word.py --input "RFP.docx" --solution wms --model gemini
 
-# Compare models
+# Compare models on a question
 python src/llm_router.py --compare --query "How does WMS integrate?"
 
-# KB feedback (show, correct, search)
+# KB feedback
 python src/rfp_feedback.py show KB_0234
 python src/rfp_feedback.py correct KB_0234 --text "New answer" --offline --apply
 python src/rfp_feedback.py search "JSON ingestion" --family planning
@@ -85,54 +75,79 @@ python src/rfp_feedback.py search "JSON ingestion" --family planning
 python src/validate_profiles.py
 python src/validate_profiles.py --product wms --auto-fix
 
-# Migrate KB to markdown
+# Migrate KB to markdown (one-time)
 python src/kb_to_markdown.py --dry-run
-python src/kb_to_markdown.py
 
-# Scan/clean KB for sensitive terms
+# Scan KB for sensitive terms
 python -m src.anonymization.scan_kb
-python -m src.anonymization.clean_kb --dry-run
 ```
 
-## Environment Variables
+## Config files
+
+| Path | Purpose |
+|------|---------|
+| `config/anonymization.yaml` | Client name masking patterns |
+| `config/overrides.yaml` | Term replacements (JDA -> Blue Yonder) |
+| `config/product_profiles/_effective/*.yaml` | 41 active product profiles |
+| `config/product_profiles/_overrides/*.yaml` | Manual profile corrections |
+| `prompts/rfp_system_prompt_universal.txt` | LLM system prompt template |
+
+## Test suite
 
 ```bash
-GEMINI_API_KEY=...       # Google Gemini (required)
-ANTHROPIC_API_KEY=...    # Claude (optional)
-OPENAI_API_KEY=...       # GPT (optional)
+python -m pytest                   # run all
+python -m pytest tests/test_excel_acceptance.py -v  # specific file
+python -m ruff check src/ tests/   # lint
 ```
 
-## Architecture Decisions
+**151 tests** across 8 test files:
 
-### Why vault FTS5 instead of ChromaDB?
-- ChromaDB + sentence-transformers + torch added ~2GB of dependencies
-- Vault FTS5 provides full-text search with zero additional deps
-- KB entries migrated to markdown in corp_data/rfp_kb/
+| File | Tests | Covers |
+|------|-------|--------|
+| test_answer_selector.py | 52 | 5-stage scoring pipeline |
+| test_cli_smoke.py | 5 | CLI --help smoke tests |
+| test_excel_acceptance.py | 11 | Green-cell detection, headers |
+| test_rfp_feedback.py | 15 | show, correct, search, forbidden claims |
+| test_router_acceptance.py | 12 | Retry logic, model registry, vault context |
+| test_validate_profiles.py | 32 | Profile contradictions, auto-fix |
+| test_vault_adapter.py | 9 | Vault retrieval, SQLite fallback |
+| test_word_acceptance.py | 10 | Section tree, answer insertion |
 
-### Why YAML for anonymization config?
-- Human-readable for non-technical users
-- Easy to maintain blocklists
+Fixture files in `tests/fixtures/` (Excel + Word test files generated by `tests/create_fixtures.py`).
 
-### Why product profiles with forbidden_claims?
-- Prevents LLM from hallucinating capabilities a product doesn't have
-- 41 profiles cover all BY product families
-- Override system allows manual corrections without regeneration
+## Dependencies
 
-## Notes for Claude Code
+| Package | Purpose |
+|---------|---------|
+| `google-genai` | Gemini API (primary LLM) |
+| `anthropic` | Claude API (alternative) |
+| `openai` | GPT API (alternative) |
+| `openpyxl` | Excel read/write |
+| `python-docx` | Word document processing |
+| `pyyaml` | Config files |
+| `python-dotenv` | .env loading |
+| `rich` | Terminal output formatting |
 
-1. **Commit frequently** with clear messages. Push after each working feature.
-2. **Anonymization:** Run `scan_kb` before `clean_kb`, always `--dry-run` first.
-3. **Tests:** 151 tests, all must pass. Run `python -m pytest tests/ -v`.
-4. **Rollback tag:** `v1.0-full-system` has the full pre-simplification codebase.
+## Models
 
-## Model Selection Guide
+| Key | Model | Provider | Use |
+|-----|-------|----------|-----|
+| gemini | Gemini 3.1 Pro | Google | Default for answers |
+| gemini-flash | Gemini 3 Flash | Google | Classification |
+| sonnet | Claude Sonnet 4.6 | Anthropic | Alternative |
+| gpt | GPT-4o | OpenAI | Alternative |
 
-Use Sonnet (default) for:
-- Small edits, quick fixes, running tests
-- Iterative development, simple CRUD
+## Known issues
 
-Use Opus for:
-- System architecture decisions
-- Complex debugging across multiple files
-- Large context analysis
-- When Sonnet fails 2+ times on same task
+- `data/kb/verified/` still retained as backup -- delete after vault integration confirmed
+- `validate_profiles.py --merge` references deleted `merge_profiles.py` -- dead code path
+- ChromaDB fallback in `llm_router.py` and `rfp_answer_word.py` references removed deps (gracefully degraded via try/except)
+- No test coverage for: `rfp_answer_word.py` main flow, `rfp_excel_agent.py` main flow, `anonymization/clean_kb.py`, `anonymization/scan_kb.py`
+- `.gitignore` has stale entries for deleted directories (archive, historical, canonical, etc.)
+
+## Related repos
+
+- **corp-by-os** -- orchestrator
+- **corp-os-meta** -- shared schemas
+- **corp-knowledge-extractor** -- extraction engine
+- **ai-council** -- multi-model debate

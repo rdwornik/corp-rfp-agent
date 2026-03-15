@@ -8,10 +8,9 @@ import pytest
 COMMANDS = [
     [sys.executable, "src/rfp_answer_word.py", "--help"],
     [sys.executable, "src/rfp_excel_agent.py", "--help"],
-    # kb_build_canonical.py and kb_embed_chroma.py have no --help (no argparse)
-    [sys.executable, "src/kb_extract_historical.py", "--help"],
-    [sys.executable, "src/kb_archive_search.py", "--help"],
-    [sys.executable, "src/excel_to_platform_matrix.py", "--help"],
+    [sys.executable, "src/rfp_feedback.py", "--help"],
+    [sys.executable, "src/validate_profiles.py", "--help"],
+    [sys.executable, "src/kb_to_markdown.py", "--help"],
 ]
 
 

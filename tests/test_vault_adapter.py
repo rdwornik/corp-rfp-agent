@@ -5,7 +5,6 @@ import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
@@ -17,15 +16,18 @@ import vault_adapter
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _make_cli_output(notes: list[dict], query: str = "test") -> str:
     """Build JSON string matching corp retrieve --format json output."""
-    return json.dumps({
-        "query": query,
-        "total_found": len(notes),
-        "sufficient": len(notes) >= 3,
-        "coverage_gaps": [],
-        "notes": notes,
-    })
+    return json.dumps(
+        {
+            "query": query,
+            "total_found": len(notes),
+            "sufficient": len(notes) >= 3,
+            "coverage_gaps": [],
+            "notes": notes,
+        }
+    )
 
 
 def _sample_note(**overrides) -> dict:
@@ -133,7 +135,9 @@ def test_retrieve_for_rfp_returns_best():
     ]
 
     with patch("vault_adapter.retrieve", return_value=notes):
-        result = vault_adapter.retrieve_for_rfp("How does WMS handle APIs?", family="wms")
+        result = vault_adapter.retrieve_for_rfp(
+            "How does WMS handle APIs?", family="wms"
+        )
 
     assert result["status"] == "OK"
     assert result["answer"] == "Top answer about WMS."
@@ -177,8 +181,15 @@ def test_retrieve_for_rfp_low_confidence():
 def test_fallback_when_cli_unavailable():
     """When corp CLI is not found, retrieve() falls back to SQLite."""
     # Simulate FileNotFoundError from subprocess (CLI not installed)
-    with patch("vault_adapter.subprocess.run", side_effect=FileNotFoundError("corp not found")), \
-         patch("vault_adapter._retrieve_via_sqlite", return_value=[_sample_note()]) as mock_sql:
+    with (
+        patch(
+            "vault_adapter.subprocess.run",
+            side_effect=FileNotFoundError("corp not found"),
+        ),
+        patch(
+            "vault_adapter._retrieve_via_sqlite", return_value=[_sample_note()]
+        ) as mock_sql,
+    ):
         result = vault_adapter.retrieve("test query")
 
     mock_sql.assert_called_once()
@@ -230,7 +241,9 @@ def test_fallback_direct_sqlite(tmp_path):
     conn.close()
 
     # Write a note file
-    (tmp_path / "note.md").write_text("WMS supports REST APIs for integration.", encoding="utf-8")
+    (tmp_path / "note.md").write_text(
+        "WMS supports REST APIs for integration.", encoding="utf-8"
+    )
 
     # Patch _find_index_db to use our temp DB
     with patch("vault_adapter._find_index_db", return_value=db_path):

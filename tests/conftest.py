@@ -11,7 +11,9 @@ FIXTURES_DIR = Path(__file__).parent / "fixtures"
 def excel_golden():
     """Path to golden Excel fixture."""
     path = FIXTURES_DIR / "excel_golden.xlsx"
-    assert path.exists(), f"Fixture not found: {path}. Run: python tests/create_fixtures.py"
+    assert path.exists(), (
+        f"Fixture not found: {path}. Run: python tests/create_fixtures.py"
+    )
     return path
 
 
@@ -27,7 +29,9 @@ def excel_golden_expected():
 def word_golden():
     """Path to golden Word fixture."""
     path = FIXTURES_DIR / "word_golden.docx"
-    assert path.exists(), f"Fixture not found: {path}. Run: python tests/create_fixtures.py"
+    assert path.exists(), (
+        f"Fixture not found: {path}. Run: python tests/create_fixtures.py"
+    )
     return path
 
 

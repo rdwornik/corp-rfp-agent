@@ -1,7 +1,6 @@
 """Acceptance tests for Word agent -- structure checks only (no LLM calls)."""
 
 import sys
-import copy
 from pathlib import Path
 
 import pytest
@@ -79,9 +78,12 @@ def test_content_paragraph_counts(word_golden, word_golden_expected):
 
     # Subsection content
     for actual_child, expected_child in zip(integration.children, expected["children"]):
-        assert len(actual_child.content_paragraphs) == expected_child["content_paragraphs"], \
-            f"{actual_child.title}: expected {expected_child['content_paragraphs']}, " \
+        assert (
+            len(actual_child.content_paragraphs) == expected_child["content_paragraphs"]
+        ), (
+            f"{actual_child.title}: expected {expected_child['content_paragraphs']}, "
             f"got {len(actual_child.content_paragraphs)}"
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -98,8 +100,9 @@ def test_answerable_sections(word_golden, word_golden_expected):
 
     # Chapter header alone (no own content) should NOT be answerable
     breadcrumbs = [b.breadcrumb for b in blocks]
-    assert not any(bc == "VIII. Architecture" for bc in breadcrumbs), \
+    assert not any(bc == "VIII. Architecture" for bc in breadcrumbs), (
         "Chapter heading without own content should not be answerable"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -114,7 +117,10 @@ def test_breadcrumbs(word_golden):
     breadcrumbs = [b.breadcrumb for b in blocks]
 
     assert "VIII. Architecture > 1. Integration Capabilities > APIs" in breadcrumbs
-    assert "VIII. Architecture > 1. Integration Capabilities > File Exchanges" in breadcrumbs
+    assert (
+        "VIII. Architecture > 1. Integration Capabilities > File Exchanges"
+        in breadcrumbs
+    )
     assert "VIII. Architecture > 1. Integration Capabilities > Event Bus" in breadcrumbs
     assert "VIII. Architecture > 2. Security" in breadcrumbs
     assert "VIII. Architecture > 3. Monitoring" in breadcrumbs
@@ -181,11 +187,11 @@ def test_blue_text_formatting(word_golden, mock_llm_response, tmp_path):
 
             # Check color via XML (more reliable than run.font.color.rgb)
             for run in runs:
-                rpr = run._element.find(qn('w:rPr'))
+                rpr = run._element.find(qn("w:rPr"))
                 if rpr is not None:
-                    color_elem = rpr.find(qn('w:color'))
+                    color_elem = rpr.find(qn("w:color"))
                     if color_elem is not None:
-                        assert color_elem.get(qn('w:val')) == '0066CC'
+                        assert color_elem.get(qn("w:val")) == "0066CC"
             break
     else:
         pytest.fail("BY Response paragraph not found")

@@ -9,7 +9,6 @@ Usage:
 import argparse
 import json
 import re
-import sys
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -66,7 +65,7 @@ def _yaml_list(items: list) -> str:
     for item in items:
         s = str(item)
         # Quote strings that contain special YAML characters
-        if any(c in s for c in ':",[]{}#&*!|>\' '):
+        if any(c in s for c in ":\",[]{}#&*!|>' "):
             s = f'"{s}"'
         escaped.append(s)
     return "[" + ", ".join(escaped) + "]"
@@ -77,7 +76,9 @@ def json_to_markdown(entry: dict, family: str, trust_level: str = "verified") ->
     entry_id = entry.get("id") or entry.get("kb_id", "unknown")
     md_id = _build_markdown_id(family, entry_id)
 
-    products = FAMILY_PRODUCTS.get(family, [f"Blue Yonder {family.replace('_', ' ').title()}"])
+    products = FAMILY_PRODUCTS.get(
+        family, [f"Blue Yonder {family.replace('_', ' ').title()}"]
+    )
     category = entry.get("category", "general")
     tags = entry.get("tags", [])
     source_rfps = entry.get("source_rfps", [])
@@ -116,7 +117,9 @@ def _md_filename(entry_id: str) -> str:
     return _sanitize_id(entry_id) + ".md"
 
 
-def ensure_directories(output_dir: Path, families: list[str], dry_run: bool = False) -> list[Path]:
+def ensure_directories(
+    output_dir: Path, families: list[str], dry_run: bool = False
+) -> list[Path]:
     """Create output directory structure. Returns list of created dirs."""
     dirs_to_create = set(FAMILY_DIRS)
     # Add any families found in source that aren't in the default list
@@ -136,8 +139,9 @@ def ensure_directories(output_dir: Path, families: list[str], dry_run: bool = Fa
     return created
 
 
-def convert_directory(source_dir: Path, output_dir: Path, trust_level: str,
-                      dry_run: bool = False) -> dict:
+def convert_directory(
+    source_dir: Path, output_dir: Path, trust_level: str, dry_run: bool = False
+) -> dict:
     """Convert all JSON files in source_dir/{family}/ to markdown.
 
     Returns dict with counts: {family: count, ...} and total.
@@ -181,8 +185,12 @@ def convert_directory(source_dir: Path, output_dir: Path, trust_level: str,
     return stats
 
 
-def migrate(verified_dir: Path = None, drafts_dir: Path = None,
-            output_dir: Path = None, dry_run: bool = False) -> dict:
+def migrate(
+    verified_dir: Path = None,
+    drafts_dir: Path = None,
+    output_dir: Path = None,
+    dry_run: bool = False,
+) -> dict:
     """Run full migration. Returns summary dict."""
     verified_dir = verified_dir or DEFAULT_VERIFIED_DIR
     drafts_dir = drafts_dir or DEFAULT_DRAFTS_DIR
@@ -227,18 +235,30 @@ def print_summary(result: dict):
         for family, count in sorted(result["drafts"].items()):
             print(f"  {family:.<30} {count:>5}")
 
-    print(f"\nMigrated: {result['total_verified']} verified + {result['total_drafts']} drafts")
+    print(
+        f"\nMigrated: {result['total_verified']} verified + {result['total_drafts']} drafts"
+    )
     print(f"Output:   {result['output_dir']}")
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Convert KB JSON entries to markdown files")
-    parser.add_argument("--dry-run", action="store_true",
-                        help="Show what would happen without writing files")
-    parser.add_argument("--source-dir", type=str, default=None,
-                        help="Override verified source directory")
-    parser.add_argument("--output-dir", type=str, default=None,
-                        help="Override output directory")
+    parser = argparse.ArgumentParser(
+        description="Convert KB JSON entries to markdown files"
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Show what would happen without writing files",
+    )
+    parser.add_argument(
+        "--source-dir",
+        type=str,
+        default=None,
+        help="Override verified source directory",
+    )
+    parser.add_argument(
+        "--output-dir", type=str, default=None, help="Override output directory"
+    )
     args = parser.parse_args()
 
     verified_dir = Path(args.source_dir) if args.source_dir else None

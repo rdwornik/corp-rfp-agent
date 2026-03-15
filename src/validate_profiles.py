@@ -14,8 +14,6 @@ Usage:
 """
 
 import argparse
-import json
-import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
@@ -55,7 +53,11 @@ BOOL_TO_SERVICE_KEY = {
 # Field → (forbidden-claim substring patterns that contradict True)
 FIELD_FORBIDDEN_PATTERNS = {
     "cloud_native": ["NOT cloud-native", "not cloud-native"],
-    "uses_snowflake": ["NOT use Snowflake", "Does NOT use Snowflake", "not use snowflake"],
+    "uses_snowflake": [
+        "NOT use Snowflake",
+        "Does NOT use Snowflake",
+        "not use snowflake",
+    ],
     "microservices": ["NOT microservice", "not microservice"],
 }
 
@@ -63,6 +65,7 @@ FIELD_FORBIDDEN_PATTERNS = {
 # ---------------------------------------------------------------------------
 # Core validation
 # ---------------------------------------------------------------------------
+
 
 def validate_profile(profile: dict) -> list[dict]:
     """Validate one effective profile. Returns list of issues.
@@ -85,28 +88,32 @@ def validate_profile(profile: dict) -> list[dict]:
         if value is True:
             for pat in patterns:
                 if any(pat.lower() in c for c in fc_lower):
-                    issues.append({
-                        "level": ERROR,
-                        "field": field,
-                        "message": (
-                            f"{field}=true contradicts "
-                            f"forbidden claim containing '{pat}'"
-                        ),
-                    })
+                    issues.append(
+                        {
+                            "level": ERROR,
+                            "field": field,
+                            "message": (
+                                f"{field}=true contradicts "
+                                f"forbidden claim containing '{pat}'"
+                            ),
+                        }
+                    )
                     break  # One error per field is enough
 
     # --- 1b. CONTRADICTIONS: has_X: true but X in not_available ---
     for bool_field, svc_key in BOOL_TO_SERVICE_KEY.items():
         value = profile.get(bool_field)
         if value is True and svc_key in not_available:
-            issues.append({
-                "level": ERROR,
-                "field": bool_field,
-                "message": (
-                    f"{bool_field}=true but '{svc_key}' is in "
-                    f"platform_services.not_available"
-                ),
-            })
+            issues.append(
+                {
+                    "level": ERROR,
+                    "field": bool_field,
+                    "message": (
+                        f"{bool_field}=true but '{svc_key}' is in "
+                        f"platform_services.not_available"
+                    ),
+                }
+            )
 
     # --- 2. MISSING DATA ---
     for field, label in [
@@ -116,65 +123,79 @@ def validate_profile(profile: dict) -> list[dict]:
     ]:
         val = profile.get(field)
         if val is None or val == []:
-            issues.append({
-                "level": WARNING,
-                "field": field,
-                "message": label,
-            })
+            issues.append(
+                {
+                    "level": WARNING,
+                    "field": field,
+                    "message": label,
+                }
+            )
 
     if profile.get("multi_tenant") is None:
-        issues.append({
-            "level": WARNING,
-            "field": "multi_tenant",
-            "message": "multi_tenant unknown, needs override",
-        })
+        issues.append(
+            {
+                "level": WARNING,
+                "field": "multi_tenant",
+                "message": "multi_tenant unknown, needs override",
+            }
+        )
 
     # --- 3. SUSPICIOUS INFERENCES ---
     if profile.get("cloud_native") is True:
         if "microservice" not in kf_lower and "cloud-native" not in kf_lower:
             # Only suspicious if there are key_facts at all (otherwise just missing data)
             if key_facts:
-                issues.append({
-                    "level": SUSPICIOUS,
-                    "field": "cloud_native",
-                    "message": (
-                        "cloud_native=true but no 'microservice' or 'cloud-native' "
-                        "found in key_facts"
-                    ),
-                })
+                issues.append(
+                    {
+                        "level": SUSPICIOUS,
+                        "field": "cloud_native",
+                        "message": (
+                            "cloud_native=true but no 'microservice' or 'cloud-native' "
+                            "found in key_facts"
+                        ),
+                    }
+                )
 
     if profile.get("uses_snowflake") is True:
         if any("snowflake" in c for c in fc_lower):
-            issues.append({
-                "level": ERROR,
-                "field": "uses_snowflake",
-                "message": "uses_snowflake=true but 'Snowflake' appears in a forbidden claim",
-            })
+            issues.append(
+                {
+                    "level": ERROR,
+                    "field": "uses_snowflake",
+                    "message": "uses_snowflake=true but 'Snowflake' appears in a forbidden claim",
+                }
+            )
 
     if profile.get("microservices") is True:
         if any("not microservice" in c for c in fc_lower):
-            issues.append({
-                "level": ERROR,
-                "field": "microservices",
-                "message": "microservices=true but 'NOT microservice' in a forbidden claim",
-            })
+            issues.append(
+                {
+                    "level": ERROR,
+                    "field": "microservices",
+                    "message": "microservices=true but 'NOT microservice' in a forbidden claim",
+                }
+            )
 
     # --- 4. PLATFORM SERVICE CONSISTENCY ---
     overlap = available & not_available
     for svc in sorted(overlap):
-        issues.append({
-            "level": ERROR,
-            "field": "platform_services",
-            "message": f"'{svc}' in both available AND not_available",
-        })
+        issues.append(
+            {
+                "level": ERROR,
+                "field": "platform_services",
+                "message": f"'{svc}' in both available AND not_available",
+            }
+        )
 
     already_available = available & coming_soon
     for svc in sorted(already_available):
-        issues.append({
-            "level": WARNING,
-            "field": "platform_services",
-            "message": f"'{svc}' in both available AND coming_soon (already shipped?)",
-        })
+        issues.append(
+            {
+                "level": WARNING,
+                "field": "platform_services",
+                "message": f"'{svc}' in both available AND coming_soon (already shipped?)",
+            }
+        )
 
     return issues
 
@@ -183,13 +204,13 @@ def validate_profile(profile: dict) -> list[dict]:
 # Auto-fix: generate override YAML for ERROR contradictions
 # ---------------------------------------------------------------------------
 
+
 def build_auto_fix(profile: dict, issues: list[dict]) -> Optional[dict]:
     """Build an override dict that fixes ERROR-level contradictions.
 
     Returns None if no fixes needed.
     """
     fixes: dict = {}
-    product = profile.get("product", "unknown")
 
     for issue in issues:
         if issue["level"] != ERROR:
@@ -217,8 +238,9 @@ def build_auto_fix(profile: dict, issues: list[dict]) -> Optional[dict]:
     return fixes
 
 
-def save_override(product_key: str, override: dict,
-                  overrides_dir: Path = OVERRIDES_DIR) -> Path:
+def save_override(
+    product_key: str, override: dict, overrides_dir: Path = OVERRIDES_DIR
+) -> Path:
     """Save override YAML, merging with any existing override file."""
     overrides_dir.mkdir(parents=True, exist_ok=True)
     path = overrides_dir / f"{product_key}.yaml"
@@ -249,8 +271,15 @@ def save_override(product_key: str, override: dict,
     dumper.add_representer(type(None), _none_repr)
 
     with open(path, "w", encoding="utf-8") as f:
-        yaml.dump(existing, f, Dumper=dumper, default_flow_style=False,
-                  allow_unicode=True, sort_keys=False, width=120)
+        yaml.dump(
+            existing,
+            f,
+            Dumper=dumper,
+            default_flow_style=False,
+            allow_unicode=True,
+            sort_keys=False,
+            width=120,
+        )
 
     return path
 
@@ -259,14 +288,15 @@ def save_override(product_key: str, override: dict,
 # Report
 # ---------------------------------------------------------------------------
 
+
 def print_report(results: dict[str, list[dict]]) -> None:
     """Print validation report to console."""
     border = "=" * 66
     print(f"\n{border}")
-    print(f"  Product Profile Validation")
+    print("  Product Profile Validation")
     print(f"{border}")
     print(f"  {'Profile':<24}{'Errors':>8}{'Warnings':>10}  Status")
-    print(f"  {'-'*24}{'-'*8}{'-'*10}  {'-'*16}")
+    print(f"  {'-' * 24}{'-' * 8}{'-' * 10}  {'-' * 16}")
 
     total_profiles = 0
     with_errors = 0
@@ -286,23 +316,31 @@ def print_report(results: dict[str, list[dict]]) -> None:
 
         print(f"  {product:<24}{errors:>8}{warnings:>10}  {status}")
 
-    print(f"  {'-'*24}{'-'*8}{'-'*10}  {'-'*16}")
-    print(f"  Total: {total_profiles} profiles, "
-          f"{with_errors} with errors, {with_warnings} with warnings")
+    print(f"  {'-' * 24}{'-' * 8}{'-' * 10}  {'-' * 16}")
+    print(
+        f"  Total: {total_profiles} profiles, "
+        f"{with_errors} with errors, {with_warnings} with warnings"
+    )
     print(f"{border}")
 
     # Detail sections
-    all_errors = [(p, i) for p, issues in results.items() for i in issues if i["level"] == ERROR]
-    all_warnings = [(p, i) for p, issues in results.items()
-                    for i in issues if i["level"] in (WARNING, SUSPICIOUS)]
+    all_errors = [
+        (p, i) for p, issues in results.items() for i in issues if i["level"] == ERROR
+    ]
+    all_warnings = [
+        (p, i)
+        for p, issues in results.items()
+        for i in issues
+        if i["level"] in (WARNING, SUSPICIOUS)
+    ]
 
     if all_errors:
-        print(f"\nErrors (must fix):")
+        print("\nErrors (must fix):")
         for product, issue in sorted(all_errors, key=lambda x: x[0]):
             print(f"  {product}: {issue['message']}")
 
     if all_warnings:
-        print(f"\nWarnings (should review):")
+        print("\nWarnings (should review):")
         for product, issue in sorted(all_warnings, key=lambda x: x[0]):
             print(f"  {product}: {issue['message']}")
 
@@ -310,6 +348,7 @@ def print_report(results: dict[str, list[dict]]) -> None:
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
+
 
 def validate_all(
     effective_dir: Path = EFFECTIVE_DIR,
@@ -339,12 +378,19 @@ def main():
     parser = argparse.ArgumentParser(
         description="Validate product profiles -- detect contradictions and missing data",
     )
-    parser.add_argument("--product", type=str, default=None,
-                        help="Validate only one product")
-    parser.add_argument("--auto-fix", action="store_true",
-                        help="Generate override YAML files for ERROR contradictions")
-    parser.add_argument("--merge", action="store_true",
-                        help="After auto-fix, run merge_profiles to update effective")
+    parser.add_argument(
+        "--product", type=str, default=None, help="Validate only one product"
+    )
+    parser.add_argument(
+        "--auto-fix",
+        action="store_true",
+        help="Generate override YAML files for ERROR contradictions",
+    )
+    parser.add_argument(
+        "--merge",
+        action="store_true",
+        help="After auto-fix, run merge_profiles to update effective",
+    )
     parser.add_argument("--effective-dir", type=str, default=str(EFFECTIVE_DIR))
     parser.add_argument("--overrides-dir", type=str, default=str(OVERRIDES_DIR))
     args = parser.parse_args()
@@ -378,6 +424,7 @@ def main():
         if args.merge and fix_count:
             print("\n[INFO] Running merge_profiles...")
             from merge_profiles import merge_all
+
             merge_all()
 
 

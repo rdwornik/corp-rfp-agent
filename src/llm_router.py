@@ -18,12 +18,14 @@ from google.genai import types
 # Optional imports
 try:
     import anthropic
+
     ANTHROPIC_AVAILABLE = True
 except ImportError:
     ANTHROPIC_AVAILABLE = False
 
 try:
     from openai import OpenAI
+
     OPENAI_AVAILABLE = True
 except ImportError:
     OPENAI_AVAILABLE = False
@@ -32,6 +34,7 @@ except ImportError:
 try:
     import chromadb
     from chromadb.utils import embedding_functions
+
     CHROMADB_AVAILABLE = True
 except ImportError:
     CHROMADB_AVAILABLE = False
@@ -45,7 +48,9 @@ KB_JSON_PATH = PROJECT_ROOT / "data/kb/canonical/RFP_Database_UNIFIED_CANONICAL.
 DB_PATH = PROJECT_ROOT / "data/kb/chroma_store"
 COLLECTION_NAME = "rfp_knowledge_base"
 SYSTEM_PROMPT_PATH = PROJECT_ROOT / "prompts/rfp_system_prompt_universal.txt"
-DEBUG = os.environ.get("DEBUG_RAG", "0") == "1"  # Set DEBUG_RAG=1 to enable debug logging
+DEBUG = (
+    os.environ.get("DEBUG_RAG", "0") == "1"
+)  # Set DEBUG_RAG=1 to enable debug logging
 
 # --- MODEL REGISTRY ---
 MODELS = {
@@ -58,6 +63,7 @@ MODELS = {
     "gpt": {"name": "gpt-4o", "provider": "openai"},
 }
 
+
 def load_system_prompt() -> str:
     """Load system prompt from external file."""
     if not SYSTEM_PROMPT_PATH.exists():
@@ -69,11 +75,11 @@ def load_system_prompt() -> str:
 def clean_bold_markdown(text: str) -> str:
     """Remove bold/italic markdown but keep list structure."""
     # Remove bold **text** -> text
-    text = re.sub(r'\*\*(.+?)\*\*', r'\1', text)
+    text = re.sub(r"\*\*(.+?)\*\*", r"\1", text)
     # Remove italic *text* -> text
-    text = re.sub(r'\*(.+?)\*', r'\1', text)
+    text = re.sub(r"\*(.+?)\*", r"\1", text)
     # Remove headers
-    text = re.sub(r'^#+\s+', '', text, flags=re.MULTILINE)
+    text = re.sub(r"^#+\s+", "", text, flags=re.MULTILINE)
     return text.strip()
 
 
@@ -85,9 +91,15 @@ def retry_with_backoff(func, max_retries=5, base_delay=2):
         except Exception as e:
             error_str = str(e)
             # Check for rate limit errors (429, 1302, concurrency)
-            if "429" in error_str or "1302" in error_str or "concurrency" in error_str.lower():
-                delay = base_delay * (2 ** attempt) + random.uniform(0, 1)
-                print(f"   [WARNING] Rate limited. Retry {attempt + 1}/{max_retries} in {delay:.1f}s...")
+            if (
+                "429" in error_str
+                or "1302" in error_str
+                or "concurrency" in error_str.lower()
+            ):
+                delay = base_delay * (2**attempt) + random.uniform(0, 1)
+                print(
+                    f"   [WARNING] Rate limited. Retry {attempt + 1}/{max_retries} in {delay:.1f}s..."
+                )
                 time.sleep(delay)
             else:
                 raise  # Re-raise non-rate-limit errors
@@ -98,11 +110,13 @@ def retry_with_backoff(func, max_retries=5, base_delay=2):
 # Vault note content parsing helpers
 # ---------------------------------------------------------------------------
 
+
 def extract_question(content: str) -> str:
     """Extract the ## Question section from vault markdown content."""
     match = re.search(
-        r'^##\s+Question\s*\n(.*?)(?=^##\s|\Z)',
-        content, re.MULTILINE | re.DOTALL,
+        r"^##\s+Question\s*\n(.*?)(?=^##\s|\Z)",
+        content,
+        re.MULTILINE | re.DOTALL,
     )
     if match:
         return match.group(1).strip()
@@ -117,17 +131,20 @@ def extract_question(content: str) -> str:
 def extract_answer(content: str) -> str:
     """Extract the ## Answer section from vault markdown content."""
     match = re.search(
-        r'^##\s+Answer\s*\n(.*?)(?=^##\s|\Z)',
-        content, re.MULTILINE | re.DOTALL,
+        r"^##\s+Answer\s*\n(.*?)(?=^##\s|\Z)",
+        content,
+        re.MULTILINE | re.DOTALL,
     )
     if match:
         return match.group(1).strip()
     # Fallback: return everything after ## Question block (or full content)
-    q_end = re.search(r'^##\s+Question\s*\n.*?(?=^##\s|\Z)', content, re.MULTILINE | re.DOTALL)
+    q_end = re.search(
+        r"^##\s+Question\s*\n.*?(?=^##\s|\Z)", content, re.MULTILINE | re.DOTALL
+    )
     if q_end:
-        remainder = content[q_end.end():].strip()
+        remainder = content[q_end.end() :].strip()
         # Strip any remaining ## headers
-        remainder = re.sub(r'^##\s+\w+\s*\n', '', remainder, flags=re.MULTILINE).strip()
+        remainder = re.sub(r"^##\s+\w+\s*\n", "", remainder, flags=re.MULTILINE).strip()
         if remainder:
             return remainder
     return content.strip()
@@ -138,20 +155,27 @@ def _vault_notes_to_kb_items(notes: list[dict]) -> list[dict]:
     items = []
     for n in notes:
         content = n.get("content", "")
-        items.append({
-            "kb_id": str(n.get("note_id", "")),
-            "category": ", ".join(n.get("topics", [])[:2]) if n.get("topics") else "",
-            "subcategory": "",
-            "canonical_question": extract_question(content),
-            "canonical_answer": extract_answer(content),
-            "domain": ", ".join(n.get("products", [])[:1]) if n.get("products") else "",
-        })
+        items.append(
+            {
+                "kb_id": str(n.get("note_id", "")),
+                "category": ", ".join(n.get("topics", [])[:2])
+                if n.get("topics")
+                else "",
+                "subcategory": "",
+                "canonical_question": extract_question(content),
+                "canonical_answer": extract_answer(content),
+                "domain": ", ".join(n.get("products", [])[:1])
+                if n.get("products")
+                else "",
+            }
+        )
     return items
 
 
 # ---------------------------------------------------------------------------
 # LLMRouter
 # ---------------------------------------------------------------------------
+
 
 class LLMRouter:
     def __init__(self, solution: str = None):
@@ -177,7 +201,7 @@ class LLMRouter:
 
         try:
             if KB_JSON_PATH.exists():
-                with open(KB_JSON_PATH, 'r', encoding='utf-8') as f:
+                with open(KB_JSON_PATH, "r", encoding="utf-8") as f:
                     raw_data = json.load(f)
                 for item in raw_data:
                     kb_id = item.get("kb_id")
@@ -214,7 +238,9 @@ class LLMRouter:
             notes = vault_retrieve(query, products=products, limit=k)
             if notes:
                 if DEBUG:
-                    print(f"[DEBUG] Vault returned {len(notes)} notes for: {query[:60]}")
+                    print(
+                        f"[DEBUG] Vault returned {len(notes)} notes for: {query[:60]}"
+                    )
                 return _vault_notes_to_kb_items(notes)
         except Exception as exc:
             logger.warning("Vault retrieval failed: %s, trying ChromaDB fallback", exc)
@@ -233,20 +259,23 @@ class LLMRouter:
         found_items = []
 
         if DEBUG:
-            print(f"\n[DEBUG] === ChromaDB Fallback Retrieval ===")
+            print("\n[DEBUG] === ChromaDB Fallback Retrieval ===")
             print(f"[DEBUG] Query: {query}")
 
-        if results['ids'] and len(results['ids']) > 0:
-            chroma_ids = results['ids'][0]
-            distances = results['distances'][0] if 'distances' in results else [None] * len(chroma_ids)
+        if results["ids"] and len(results["ids"]) > 0:
+            chroma_ids = results["ids"][0]
+            distances = (
+                results["distances"][0]
+                if "distances" in results
+                else [None] * len(chroma_ids)
+            )
 
             for i, chroma_id in enumerate(chroma_ids):
                 if chroma_id in self.kb_lookup:
                     found_items.append(self.kb_lookup[chroma_id])
 
                     if DEBUG:
-                        item = self.kb_lookup[chroma_id]
-                        print(f"[DEBUG] {i+1}. {chroma_id} | dist={distances[i]}")
+                        print(f"[DEBUG] {i + 1}. {chroma_id} | dist={distances[i]}")
 
         if DEBUG:
             print(f"[DEBUG] ChromaDB fallback retrieved: {len(found_items)}/{k}")
@@ -274,10 +303,7 @@ class LLMRouter:
 
         # Build prompt from template
         context_str = self.format_context(context_items)
-        prompt = self.system_prompt_template.format(
-            context=context_str,
-            query=query
-        )
+        prompt = self.system_prompt_template.format(context=context_str, query=query)
 
         model_config = MODELS.get(model, MODELS["gemini"])
         provider = model_config["provider"]
@@ -292,20 +318,28 @@ class LLMRouter:
                 response = client.models.generate_content(
                     model=model_name,
                     contents=[{"role": "user", "parts": [{"text": prompt}]}],
-                    config=types.GenerateContentConfig(temperature=0.3, max_output_tokens=8192)
+                    config=types.GenerateContentConfig(
+                        temperature=0.3, max_output_tokens=8192
+                    ),
                 )
-                return clean_bold_markdown(response.text.strip()) if response.text else "Error: Empty response"
+                return (
+                    clean_bold_markdown(response.text.strip())
+                    if response.text
+                    else "Error: Empty response"
+                )
 
             # --- ANTHROPIC CLAUDE ---
             elif provider == "anthropic":
                 if not ANTHROPIC_AVAILABLE:
                     return "Error: Anthropic SDK not installed"
-                client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+                client = anthropic.Anthropic(
+                    api_key=os.environ.get("ANTHROPIC_API_KEY")
+                )
                 message = client.messages.create(
                     model=model_name,
                     max_tokens=4096,
                     temperature=0.3,
-                    messages=[{"role": "user", "content": prompt}]
+                    messages=[{"role": "user", "content": prompt}],
                 )
                 return message.content[0].text.strip()
 
@@ -318,7 +352,7 @@ class LLMRouter:
                     model=model_name,
                     messages=[{"role": "user", "content": prompt}],
                     max_completion_tokens=4096,
-                    temperature=0.3
+                    temperature=0.3,
                 )
                 return response.choices[0].message.content.strip()
 
@@ -376,16 +410,28 @@ def compare_models(query: str, models: list[str] | None = None) -> dict:
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="LLM Router -- generate answers via RAG")
-    parser.add_argument("--compare", action="store_true",
-                        help="Compare models side by side")
-    parser.add_argument("--query", "-q", type=str,
-                        default="How do you handle data encryption?",
-                        help="Query to answer")
-    parser.add_argument("--models", nargs="+", default=None,
-                        help="Models to compare (default: gemini sonnet)")
-    parser.add_argument("--model", "-m", default="gemini",
-                        help="Single model to use (default: gemini)")
+    parser = argparse.ArgumentParser(
+        description="LLM Router -- generate answers via RAG"
+    )
+    parser.add_argument(
+        "--compare", action="store_true", help="Compare models side by side"
+    )
+    parser.add_argument(
+        "--query",
+        "-q",
+        type=str,
+        default="How do you handle data encryption?",
+        help="Query to answer",
+    )
+    parser.add_argument(
+        "--models",
+        nargs="+",
+        default=None,
+        help="Models to compare (default: gemini sonnet)",
+    )
+    parser.add_argument(
+        "--model", "-m", default="gemini", help="Single model to use (default: gemini)"
+    )
     args = parser.parse_args()
 
     if args.compare:

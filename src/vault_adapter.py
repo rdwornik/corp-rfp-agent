@@ -56,8 +56,7 @@ def retrieve(
     # Filter by trust level
     max_rank = _TRUST_RANK.get(min_trust, 3)
     notes = [
-        n for n in notes
-        if _TRUST_RANK.get(n.get("confidence", "draft"), 3) <= max_rank
+        n for n in notes if _TRUST_RANK.get(n.get("confidence", "draft"), 3) <= max_rank
     ]
 
     return notes[:limit]
@@ -106,6 +105,7 @@ def retrieve_for_rfp(
 # CLI backend
 # ---------------------------------------------------------------------------
 
+
 def _retrieve_via_cli(
     query: str,
     products: list[str] | None = None,
@@ -119,11 +119,16 @@ def _retrieve_via_cli(
             cmd.extend(["--product", prod])
 
     result = subprocess.run(
-        cmd, capture_output=True, text=True, timeout=30,
+        cmd,
+        capture_output=True,
+        text=True,
+        timeout=30,
     )
 
     if result.returncode != 0:
-        logger.warning("corp retrieve failed (rc=%d): %s", result.returncode, result.stderr.strip())
+        logger.warning(
+            "corp retrieve failed (rc=%d): %s", result.returncode, result.stderr.strip()
+        )
         return []
 
     try:
@@ -138,6 +143,7 @@ def _retrieve_via_cli(
 # ---------------------------------------------------------------------------
 # Direct SQLite fallback
 # ---------------------------------------------------------------------------
+
 
 def _retrieve_via_sqlite(
     query: str,
@@ -192,17 +198,19 @@ def _retrieve_via_sqlite(
         notes = []
         for row in rows:
             content = _load_note_content(row["note_path"])
-            notes.append({
-                "note_id": row["note_id"],
-                "title": row["title"],
-                "content": content,
-                "products": _parse_json_field(row["products"]),
-                "topics": _parse_json_field(row["topics"]),
-                "domains": _parse_json_field(row["domains"]),
-                "confidence": row["confidence"] or "draft",
-                "relevance_score": _bm25_to_score(row["bm25_rank"]),
-                "project_id": row["project_id"],
-            })
+            notes.append(
+                {
+                    "note_id": row["note_id"],
+                    "title": row["title"],
+                    "content": content,
+                    "products": _parse_json_field(row["products"]),
+                    "topics": _parse_json_field(row["topics"]),
+                    "domains": _parse_json_field(row["domains"]),
+                    "confidence": row["confidence"] or "draft",
+                    "relevance_score": _bm25_to_score(row["bm25_rank"]),
+                    "project_id": row["project_id"],
+                }
+            )
 
         return notes
 

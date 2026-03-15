@@ -24,6 +24,7 @@ import numpy as np
 
 class NumpyEncoder(json.JSONEncoder):
     """JSON encoder that handles numpy types from embeddings."""
+
     def default(self, obj):
         if isinstance(obj, (np.floating,)):
             return float(obj)
@@ -33,13 +34,15 @@ class NumpyEncoder(json.JSONEncoder):
             return obj.tolist()
         return super().default(obj)
 
+
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
 
 # Red flags — answer is garbage, don't use it
 RED_FLAG_PATTERNS = [
-    re.compile(p, re.IGNORECASE) for p in [
+    re.compile(p, re.IGNORECASE)
+    for p in [
         r"see attached",
         r"refer to (?:the )?(?:attached|appendix|document|section)",
         r"as (?:discussed|mentioned|agreed) (?:in |during )?(?:our |the )?(?:meeting|call|session)",
@@ -66,28 +69,54 @@ DEPRECATED_TERMS = [
 
 # Blue Yonder product/tech terms — positive specificity signals
 BY_TERMS = [
-    "Blue Yonder", "BY Platform", "Snowflake", "Azure", "AKS",
-    "Kubernetes", "microservices", "SaaS", "REST API", "GraphQL",
-    "OAuth2", "SAML", "SSO", "SOC 2", "SOC2", "ISO 27001",
-    "GDPR", "Platform Data Cloud", "PDC", "Stratosphere",
-    "Demand Planning", "Supply Planning", "Fulfillment",
-    "Cognitive Planning", "Machine Learning", "GenAI",
+    "Blue Yonder",
+    "BY Platform",
+    "Snowflake",
+    "Azure",
+    "AKS",
+    "Kubernetes",
+    "microservices",
+    "SaaS",
+    "REST API",
+    "GraphQL",
+    "OAuth2",
+    "SAML",
+    "SSO",
+    "SOC 2",
+    "SOC2",
+    "ISO 27001",
+    "GDPR",
+    "Platform Data Cloud",
+    "PDC",
+    "Stratosphere",
+    "Demand Planning",
+    "Supply Planning",
+    "Fulfillment",
+    "Cognitive Planning",
+    "Machine Learning",
+    "GenAI",
 ]
 
 # Modern tech terms for currency scoring
 MODERN_TERMS = [
-    "cloud-native", "microservices", "kubernetes", "saas",
-    "azure", "genai", "ai/ml",
+    "cloud-native",
+    "microservices",
+    "kubernetes",
+    "saas",
+    "azure",
+    "genai",
+    "ai/ml",
 ]
 
 # Concrete detail patterns (percentages, SLAs, compliance)
 CONCRETE_PATTERNS = [
-    re.compile(p, re.IGNORECASE) for p in [
-        r'\d+\.?\d*\s*%',
-        r'\d+/\d+',
-        r'(?:SOC|ISO|GDPR|HIPAA)',
-        r'(?:RTO|RPO)\s*[<\u2264=]\s*\d',
-        r'\d+\s*(?:hours?|minutes?|days?|ms|seconds?)',
+    re.compile(p, re.IGNORECASE)
+    for p in [
+        r"\d+\.?\d*\s*%",
+        r"\d+/\d+",
+        r"(?:SOC|ISO|GDPR|HIPAA)",
+        r"(?:RTO|RPO)\s*[<\u2264=]\s*\d",
+        r"\d+\s*(?:hours?|minutes?|days?|ms|seconds?)",
     ]
 ]
 
@@ -100,6 +129,7 @@ LLM_BUDGET_PER_FILE = 50
 # ---------------------------------------------------------------------------
 # Stage 0: Hard Gates
 # ---------------------------------------------------------------------------
+
 
 def _count_red_flags(text: str) -> int:
     """Count red flag pattern matches in text."""
@@ -154,6 +184,7 @@ def apply_hard_gates(
 # Stage 1: Similarity Bucketing
 # ---------------------------------------------------------------------------
 
+
 def get_similarity_action(similarity: float) -> str:
     """Determine action based on similarity bucket.
 
@@ -173,6 +204,7 @@ def get_similarity_action(similarity: float) -> str:
 # ---------------------------------------------------------------------------
 # Stage 2: Heuristic Scoring
 # ---------------------------------------------------------------------------
+
 
 def score_answer(answer: str) -> dict:
     """Score an answer on multiple quality signals.
@@ -195,8 +227,8 @@ def score_answer(answer: str) -> dict:
     scores["concrete_details"] = min(concrete_count * 2, 8)
 
     # Structure: +2 for bullets/numbers, -1 for wall of text
-    has_structure = bool(re.search(r'(?:\d+[.\)]\s|[-\u2022]\s|\n\n)', answer))
-    is_wall = len(answer) > 500 and '\n' not in answer
+    has_structure = bool(re.search(r"(?:\d+[.\)]\s|[-\u2022]\s|\n\n)", answer))
+    is_wall = len(answer) > 500 and "\n" not in answer
     scores["structure"] = 2 if has_structure else (-1 if is_wall else 0)
 
     # Currency (modern terms): +2
@@ -217,6 +249,7 @@ def score_answer(answer: str) -> dict:
 # Stage 3: Decision Logic
 # ---------------------------------------------------------------------------
 
+
 def make_decision(
     existing_answer: str,
     new_answer: str,
@@ -234,7 +267,8 @@ def make_decision(
         result["decision"] = gate
         result["stage"] = "gate"
         result["reason"] = (
-            "New has red flags/deprecated" if gate == "KEEP_EXISTING"
+            "New has red flags/deprecated"
+            if gate == "KEEP_EXISTING"
             else "Existing has red flags/deprecated"
         )
         return result
@@ -244,7 +278,9 @@ def make_decision(
     if action == "ADD_NEW":
         result["decision"] = "ADD_NEW"
         result["stage"] = "similarity"
-        result["reason"] = f"Low similarity ({similarity:.2f} < {SIMILARITY_LOW}) -- different topic"
+        result["reason"] = (
+            f"Low similarity ({similarity:.2f} < {SIMILARITY_LOW}) -- different topic"
+        )
         return result
 
     if action == "TOPIC_CHECK":
@@ -358,7 +394,7 @@ def _parse_llm_json_obj(text: str) -> dict:
             pass
 
     # Strategy 3: regex extract JSON object
-    match = re.search(r'\{[^{}]*\}', text, re.DOTALL)
+    match = re.search(r"\{[^{}]*\}", text, re.DOTALL)
     if match:
         try:
             return json.loads(match.group(0))
@@ -378,7 +414,11 @@ def llm_topic_check(q_existing: str, q_new: str, llm_call) -> dict:
     try:
         text = llm_call(prompt)
         result = _parse_llm_json_obj(text)
-        return result if result else {"same_topic": False, "confidence": 0, "reason": "parse error"}
+        return (
+            result
+            if result
+            else {"same_topic": False, "confidence": 0, "reason": "parse error"}
+        )
     except Exception:
         return {"same_topic": False, "confidence": 0, "reason": "LLM error"}
 
@@ -398,7 +438,11 @@ def llm_judge(question: str, existing_answer: str, new_answer: str, llm_call) ->
         text = llm_call(prompt)
         result = _parse_llm_json_obj(text)
         if not result:
-            return {"winner": "A", "confidence": 0, "reason": "parse error, defaulting to existing"}
+            return {
+                "winner": "A",
+                "confidence": 0,
+                "reason": "parse error, defaulting to existing",
+            }
         # Conservative: low confidence -> keep existing
         if result.get("confidence", 0) < 8:
             result["winner"] = "A"
@@ -407,12 +451,17 @@ def llm_judge(question: str, existing_answer: str, new_answer: str, llm_call) ->
             )
         return result
     except Exception:
-        return {"winner": "A", "confidence": 0, "reason": "LLM error, defaulting to existing"}
+        return {
+            "winner": "A",
+            "confidence": 0,
+            "reason": "LLM error, defaulting to existing",
+        }
 
 
 # ---------------------------------------------------------------------------
 # Stage 5: Full Pipeline
 # ---------------------------------------------------------------------------
+
 
 def select_answer(
     existing_question: str,
@@ -443,8 +492,12 @@ def select_answer(
     """
     # Run stages 0-3
     result = make_decision(
-        existing_answer, new_answer, similarity,
-        client_name, existing_date, new_date,
+        existing_answer,
+        new_answer,
+        similarity,
+        client_name,
+        existing_date,
+        new_date,
     )
     result["llm_used"] = False
     result["llm_response"] = None
@@ -478,7 +531,10 @@ def select_answer(
     if result["decision"] == "LLM_JUDGE":
         if llm_call and llm_calls_remaining > 0:
             judge_result = llm_judge(
-                new_question, existing_answer, new_answer, llm_call,
+                new_question,
+                existing_answer,
+                new_answer,
+                llm_call,
             )
             result["llm_used"] = True
             llm_resp = result.get("llm_response") or {}
@@ -503,7 +559,9 @@ def select_answer(
             # No LLM or budget exhausted -- conservative: keep existing
             result["decision"] = "KEEP_EXISTING"
             result["stage"] = "scoring_tie_no_llm"
-            result["reason"] = "Tie zone, LLM unavailable -- keeping existing (conservative)"
+            result["reason"] = (
+                "Tie zone, LLM unavailable -- keeping existing (conservative)"
+            )
 
     return result
 
@@ -512,13 +570,16 @@ def select_answer(
 # Reporting
 # ---------------------------------------------------------------------------
 
-def print_improve_report(decisions: dict, audit_log: list, llm_budget_used: int = 0) -> None:
+
+def print_improve_report(
+    decisions: dict, audit_log: list, llm_budget_used: int = 0
+) -> None:
     """Print IMPROVE mode summary to console."""
     total = sum(decisions.values())
     border = "=" * 58
 
     print(f"\n{border}")
-    print(f"  IMPROVE Mode Complete")
+    print("  IMPROVE Mode Complete")
     print(f"{border}")
     print(f"  Total processed:        {total:>6}")
     print(f"  {'':->40}")
@@ -534,7 +595,7 @@ def print_improve_report(decisions: dict, audit_log: list, llm_budget_used: int 
 
     if stages:
         print(f"  {'':->40}")
-        print(f"  Decisions by stage:")
+        print("  Decisions by stage:")
         for stage, count in sorted(stages.items()):
             print(f"    {stage:<28} {count:>4}")
 
@@ -545,12 +606,14 @@ def print_improve_report(decisions: dict, audit_log: list, llm_budget_used: int 
     # Top replacements
     replacements = [e for e in audit_log if e.get("decision") == "REPLACE"]
     if replacements:
-        print(f"\n  Top replacements:")
+        print("\n  Top replacements:")
         for r in replacements[:5]:
             print(f"    {r.get('reason', '')[:70]}")
 
 
-def save_improve_report(audit_log: list, source_file: str, output_dir: Optional[Path] = None) -> Path:
+def save_improve_report(
+    audit_log: list, source_file: str, output_dir: Optional[Path] = None
+) -> Path:
     """Save full audit to improve_report.json."""
     report = {
         "source_file": source_file,

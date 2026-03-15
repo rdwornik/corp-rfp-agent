@@ -4,7 +4,6 @@ import json
 import sys
 from pathlib import Path
 
-import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
@@ -49,6 +48,7 @@ WALL_OF_TEXT = "A" * 600  # >500 chars, no newlines
 # ---------------------------------------------------------------------------
 # Stage 0: Hard Gates
 # ---------------------------------------------------------------------------
+
 
 class TestHardGates:
     def test_red_flag_new_keeps_existing(self):
@@ -105,6 +105,7 @@ class TestHardGates:
 # Stage 1: Similarity Bucketing
 # ---------------------------------------------------------------------------
 
+
 class TestSimilarityBucketing:
     def test_high_similarity_compares(self):
         assert get_similarity_action(0.90) == "COMPARE"
@@ -130,6 +131,7 @@ class TestSimilarityBucketing:
 # ---------------------------------------------------------------------------
 # Stage 2: Heuristic Scoring
 # ---------------------------------------------------------------------------
+
 
 class TestScoring:
     def test_specific_answer_scores_higher(self):
@@ -183,6 +185,7 @@ class TestScoring:
 # Stage 3: Decision Logic
 # ---------------------------------------------------------------------------
 
+
 class TestDecisionLogic:
     def test_clear_winner_replaces(self):
         """New scoring much higher -> REPLACE."""
@@ -220,8 +223,9 @@ class TestDecisionLogic:
         """Newer answer gets +2 recency bonus."""
         a = "Blue Yonder platform runs on Azure."
         b = "Blue Yonder platform runs on Azure."
-        result = make_decision(a, b, similarity=0.90,
-                               existing_date="2023-01-01", new_date="2025-06-01")
+        result = make_decision(
+            a, b, similarity=0.90, existing_date="2023-01-01", new_date="2025-06-01"
+        )
         new_scores = result["scores"]["new"]
         assert new_scores.get("recency", 0) == 2
 
@@ -235,17 +239,22 @@ class TestDecisionLogic:
 # Stage 4: LLM Judge
 # ---------------------------------------------------------------------------
 
+
 class TestLLMJudge:
     def test_topic_guard_different_adds_new(self):
         """LLM says not same topic -> ADD_NEW."""
+
         def mock_llm(prompt):
-            return '{"same_topic": false, "confidence": 9, "reason": "different topics"}'
+            return (
+                '{"same_topic": false, "confidence": 9, "reason": "different topics"}'
+            )
 
         result = llm_topic_check("What DB?", "How handle backups?", mock_llm)
         assert result["same_topic"] is False
 
     def test_topic_guard_same_continues(self):
         """LLM says same topic -> same_topic=True."""
+
         def mock_llm(prompt):
             return '{"same_topic": true, "confidence": 9, "reason": "same topic"}'
 
@@ -254,6 +263,7 @@ class TestLLMJudge:
 
     def test_judge_low_confidence_keeps(self):
         """LLM confidence < 8 -> winner forced to A (keep existing)."""
+
         def mock_llm(prompt):
             return '{"winner": "B", "confidence": 6, "reason": "slightly better"}'
 
@@ -263,6 +273,7 @@ class TestLLMJudge:
 
     def test_judge_picks_new_replaces(self):
         """LLM confidence >= 8, winner B -> REPLACE signal."""
+
         def mock_llm(prompt):
             return '{"winner": "B", "confidence": 9, "reason": "much more specific"}'
 
@@ -271,6 +282,7 @@ class TestLLMJudge:
 
     def test_llm_error_defaults_conservative(self):
         """LLM exception -> keep existing."""
+
         def mock_llm(prompt):
             raise RuntimeError("API error")
 
@@ -280,6 +292,7 @@ class TestLLMJudge:
 
     def test_topic_check_error_conservative(self):
         """Topic check LLM error -> not same topic (conservative)."""
+
         def mock_llm(prompt):
             raise RuntimeError("timeout")
 
@@ -310,8 +323,10 @@ class TestLLMJudge:
     def test_budget_exhausted_topic_check(self):
         """No budget for topic check -> ADD_NEW (conservative)."""
         result = select_answer(
-            "What DB?", CLEAN_ANSWER,
-            "How handle backups?", GENERIC_ANSWER,
+            "What DB?",
+            CLEAN_ANSWER,
+            "How handle backups?",
+            GENERIC_ANSWER,
             similarity=0.75,
             llm_call=None,
             llm_calls_remaining=0,
@@ -324,12 +339,15 @@ class TestLLMJudge:
 # Full Pipeline (select_answer)
 # ---------------------------------------------------------------------------
 
+
 class TestFullPipeline:
     def test_add_new_low_similarity(self):
         """Low similarity -> ADD_NEW without LLM."""
         result = select_answer(
-            "What database?", CLEAN_ANSWER,
-            "Describe training plan", GENERIC_ANSWER,
+            "What database?",
+            CLEAN_ANSWER,
+            "Describe training plan",
+            GENERIC_ANSWER,
             similarity=0.40,
         )
         assert result["decision"] == "ADD_NEW"
@@ -338,8 +356,10 @@ class TestFullPipeline:
     def test_keep_existing_red_flag(self):
         """New has red flags -> KEEP_EXISTING via gate."""
         result = select_answer(
-            "Q?", CLEAN_ANSWER,
-            "Q?", RED_FLAG_ANSWER,
+            "Q?",
+            CLEAN_ANSWER,
+            "Q?",
+            RED_FLAG_ANSWER,
             similarity=0.90,
         )
         assert result["decision"] == "KEEP_EXISTING"
@@ -348,8 +368,10 @@ class TestFullPipeline:
     def test_replace_clear_winner(self):
         """New clearly better -> REPLACE via scoring."""
         result = select_answer(
-            "Q?", GENERIC_ANSWER,
-            "Q?", CLEAN_ANSWER,
+            "Q?",
+            GENERIC_ANSWER,
+            "Q?",
+            CLEAN_ANSWER,
             similarity=0.90,
         )
         assert result["decision"] == "REPLACE"
@@ -365,6 +387,7 @@ class TestFullPipeline:
 
     def test_tie_with_llm_judge_keep(self):
         """Tie with LLM -> LLM decides (keep)."""
+
         def mock_llm(prompt):
             return '{"winner": "A", "confidence": 9, "reason": "existing is better"}'
 
@@ -377,6 +400,7 @@ class TestFullPipeline:
 
     def test_tie_with_llm_judge_replace(self):
         """Tie with LLM -> LLM decides (replace, high confidence)."""
+
         def mock_llm(prompt):
             return '{"winner": "B", "confidence": 9, "reason": "new is much more specific"}'
 
@@ -388,14 +412,17 @@ class TestFullPipeline:
 
     def test_topic_check_different_adds_new(self):
         """Mid-similarity + LLM says different topic -> ADD_NEW."""
+
         def mock_llm(prompt):
             if "SAME topic" in prompt:
                 return '{"same_topic": false, "confidence": 9, "reason": "different"}'
             return '{"winner": "A", "confidence": 5, "reason": "n/a"}'
 
         result = select_answer(
-            "What database?", CLEAN_ANSWER,
-            "Training schedule?", GENERIC_ANSWER,
+            "What database?",
+            CLEAN_ANSWER,
+            "Training schedule?",
+            GENERIC_ANSWER,
             similarity=0.75,
             llm_call=mock_llm,
         )
@@ -404,14 +431,17 @@ class TestFullPipeline:
 
     def test_topic_check_same_continues_to_scoring(self):
         """Mid-similarity + LLM says same topic -> continues to scoring."""
+
         def mock_llm(prompt):
             if "SAME topic" in prompt:
                 return '{"same_topic": true, "confidence": 9, "reason": "same"}'
             return '{"winner": "A", "confidence": 9, "reason": "existing is better"}'
 
         result = select_answer(
-            "Q?", CLEAN_ANSWER,
-            "Q?", GENERIC_ANSWER,
+            "Q?",
+            CLEAN_ANSWER,
+            "Q?",
+            GENERIC_ANSWER,
             similarity=0.75,
             llm_call=mock_llm,
         )
@@ -421,16 +451,22 @@ class TestFullPipeline:
     def test_no_needs_topic_check_in_output(self):
         """Internal flag needs_topic_check should not leak to output."""
         result = select_answer(
-            "Q?", CLEAN_ANSWER, "Q?", GENERIC_ANSWER,
-            similarity=0.75, llm_call=None,
+            "Q?",
+            CLEAN_ANSWER,
+            "Q?",
+            GENERIC_ANSWER,
+            similarity=0.75,
+            llm_call=None,
         )
         assert "needs_topic_check" not in result
 
     def test_replace_deprecated_existing(self):
         """Existing has deprecated terms, new is clean -> REPLACE via gate."""
         result = select_answer(
-            "Q?", DEPRECATED_ANSWER,
-            "Q?", CLEAN_ANSWER,
+            "Q?",
+            DEPRECATED_ANSWER,
+            "Q?",
+            CLEAN_ANSWER,
             similarity=0.90,
         )
         assert result["decision"] == "REPLACE"
@@ -440,6 +476,7 @@ class TestFullPipeline:
 # ---------------------------------------------------------------------------
 # Reporting
 # ---------------------------------------------------------------------------
+
 
 class TestReporting:
     def test_print_report_no_crash(self, capsys):

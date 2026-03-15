@@ -2,9 +2,7 @@
 
 import sys
 from pathlib import Path
-from unittest.mock import patch
 
-import pytest
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
@@ -23,6 +21,7 @@ from validate_profiles import (
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_profile(**overrides):
     """Build a minimal valid profile with optional overrides."""
@@ -60,15 +59,17 @@ def _make_profile(**overrides):
 # 1. Contradiction: cloud_native vs forbidden
 # ===================================================================
 
-class TestContradictionCloudNative:
 
+class TestContradictionCloudNative:
     def test_cloud_native_true_vs_forbidden(self):
         profile = _make_profile(
             cloud_native=True,
             forbidden_claims=["Product is NOT cloud-native"],
         )
         issues = validate_profile(profile)
-        errors = [i for i in issues if i["level"] == ERROR and i["field"] == "cloud_native"]
+        errors = [
+            i for i in issues if i["level"] == ERROR and i["field"] == "cloud_native"
+        ]
         assert len(errors) >= 1
         assert "contradicts" in errors[0]["message"].lower()
 
@@ -78,7 +79,9 @@ class TestContradictionCloudNative:
             forbidden_claims=["Product is NOT cloud-native"],
         )
         issues = validate_profile(profile)
-        errors = [i for i in issues if i["level"] == ERROR and i["field"] == "cloud_native"]
+        errors = [
+            i for i in issues if i["level"] == ERROR and i["field"] == "cloud_native"
+        ]
         assert len(errors) == 0
 
 
@@ -86,15 +89,17 @@ class TestContradictionCloudNative:
 # 2. Contradiction: snowflake vs forbidden
 # ===================================================================
 
-class TestContradictionSnowflake:
 
+class TestContradictionSnowflake:
     def test_uses_snowflake_true_vs_forbidden(self):
         profile = _make_profile(
             uses_snowflake=True,
             forbidden_claims=["Does NOT use Snowflake"],
         )
         issues = validate_profile(profile)
-        errors = [i for i in issues if i["level"] == ERROR and i["field"] == "uses_snowflake"]
+        errors = [
+            i for i in issues if i["level"] == ERROR and i["field"] == "uses_snowflake"
+        ]
         assert len(errors) >= 1
 
     def test_uses_snowflake_false_no_error(self):
@@ -103,7 +108,9 @@ class TestContradictionSnowflake:
             forbidden_claims=["Does NOT use Snowflake"],
         )
         issues = validate_profile(profile)
-        errors = [i for i in issues if i["level"] == ERROR and i["field"] == "uses_snowflake"]
+        errors = [
+            i for i in issues if i["level"] == ERROR and i["field"] == "uses_snowflake"
+        ]
         assert len(errors) == 0
 
 
@@ -111,8 +118,8 @@ class TestContradictionSnowflake:
 # 3. Contradiction: has_X vs not_available
 # ===================================================================
 
-class TestContradictionHasXNotAvailable:
 
+class TestContradictionHasXNotAvailable:
     def test_has_analytics_true_but_not_available(self):
         profile = _make_profile(
             has_analytics=True,
@@ -123,7 +130,9 @@ class TestContradictionHasXNotAvailable:
             },
         )
         issues = validate_profile(profile)
-        errors = [i for i in issues if i["level"] == ERROR and i["field"] == "has_analytics"]
+        errors = [
+            i for i in issues if i["level"] == ERROR and i["field"] == "has_analytics"
+        ]
         assert len(errors) >= 1
         assert "not_available" in errors[0]["message"]
 
@@ -150,7 +159,9 @@ class TestContradictionHasXNotAvailable:
             },
         )
         issues = validate_profile(profile)
-        errors = [i for i in issues if i["level"] == ERROR and i["field"] == "has_workflow"]
+        errors = [
+            i for i in issues if i["level"] == ERROR and i["field"] == "has_workflow"
+        ]
         assert len(errors) >= 1
 
 
@@ -158,30 +169,40 @@ class TestContradictionHasXNotAvailable:
 # 4. Missing data warned
 # ===================================================================
 
-class TestMissingData:
 
+class TestMissingData:
     def test_empty_database_warns(self):
         profile = _make_profile(database=None)
         issues = validate_profile(profile)
-        warnings = [i for i in issues if i["level"] == WARNING and i["field"] == "database"]
+        warnings = [
+            i for i in issues if i["level"] == WARNING and i["field"] == "database"
+        ]
         assert len(warnings) == 1
 
     def test_empty_security_warns(self):
         profile = _make_profile(security_protocols=[])
         issues = validate_profile(profile)
-        warnings = [i for i in issues if i["level"] == WARNING and i["field"] == "security_protocols"]
+        warnings = [
+            i
+            for i in issues
+            if i["level"] == WARNING and i["field"] == "security_protocols"
+        ]
         assert len(warnings) == 1
 
     def test_empty_deployment_warns(self):
         profile = _make_profile(deployment=None)
         issues = validate_profile(profile)
-        warnings = [i for i in issues if i["level"] == WARNING and i["field"] == "deployment"]
+        warnings = [
+            i for i in issues if i["level"] == WARNING and i["field"] == "deployment"
+        ]
         assert len(warnings) == 1
 
     def test_multi_tenant_none_warns(self):
         profile = _make_profile(multi_tenant=None)
         issues = validate_profile(profile)
-        warnings = [i for i in issues if i["level"] == WARNING and i["field"] == "multi_tenant"]
+        warnings = [
+            i for i in issues if i["level"] == WARNING and i["field"] == "multi_tenant"
+        ]
         assert len(warnings) == 1
 
     def test_filled_fields_no_missing_warning(self):
@@ -195,15 +216,19 @@ class TestMissingData:
 # 5. Suspicious inference flagged
 # ===================================================================
 
-class TestSuspiciousInference:
 
+class TestSuspiciousInference:
     def test_cloud_native_true_no_key_fact_support(self):
         profile = _make_profile(
             cloud_native=True,
             key_facts=["Uses PostgreSQL database", "REST API available"],
         )
         issues = validate_profile(profile)
-        suspicious = [i for i in issues if i["level"] == SUSPICIOUS and i["field"] == "cloud_native"]
+        suspicious = [
+            i
+            for i in issues
+            if i["level"] == SUSPICIOUS and i["field"] == "cloud_native"
+        ]
         assert len(suspicious) == 1
 
     def test_cloud_native_true_with_key_fact_support(self):
@@ -212,7 +237,11 @@ class TestSuspiciousInference:
             key_facts=["Built as cloud-native microservice architecture"],
         )
         issues = validate_profile(profile)
-        suspicious = [i for i in issues if i["level"] == SUSPICIOUS and i["field"] == "cloud_native"]
+        suspicious = [
+            i
+            for i in issues
+            if i["level"] == SUSPICIOUS and i["field"] == "cloud_native"
+        ]
         assert len(suspicious) == 0
 
     def test_cloud_native_true_empty_key_facts_no_suspicious(self):
@@ -227,8 +256,8 @@ class TestSuspiciousInference:
 # 6. Platform service consistency
 # ===================================================================
 
-class TestPlatformServiceConsistency:
 
+class TestPlatformServiceConsistency:
     def test_service_in_both_available_and_not_available(self):
         profile = _make_profile(
             platform_services={
@@ -238,9 +267,13 @@ class TestPlatformServiceConsistency:
             },
         )
         issues = validate_profile(profile)
-        errors = [i for i in issues if i["level"] == ERROR
-                  and i["field"] == "platform_services"
-                  and "analytics" in i["message"]]
+        errors = [
+            i
+            for i in issues
+            if i["level"] == ERROR
+            and i["field"] == "platform_services"
+            and "analytics" in i["message"]
+        ]
         assert len(errors) == 1
 
     def test_service_in_available_and_coming_soon(self):
@@ -252,9 +285,13 @@ class TestPlatformServiceConsistency:
             },
         )
         issues = validate_profile(profile)
-        warnings = [i for i in issues if i["level"] == WARNING
-                    and "ml_studio" in i["message"]
-                    and "coming_soon" in i["message"]]
+        warnings = [
+            i
+            for i in issues
+            if i["level"] == WARNING
+            and "ml_studio" in i["message"]
+            and "coming_soon" in i["message"]
+        ]
         assert len(warnings) == 1
 
     def test_no_overlap_no_error(self):
@@ -274,8 +311,8 @@ class TestPlatformServiceConsistency:
 # 7. Auto-fix generates correct override
 # ===================================================================
 
-class TestAutoFix:
 
+class TestAutoFix:
     def test_auto_fix_contradiction_sets_false(self):
         profile = _make_profile(
             cloud_native=True,
@@ -319,7 +356,11 @@ class TestAutoFix:
         assert "last_reviewed" in fix
 
     def test_save_override_creates_file(self, tmp_path):
-        override = {"cloud_native": False, "review_notes": "test", "last_reviewed": "2026-03-12"}
+        override = {
+            "cloud_native": False,
+            "review_notes": "test",
+            "last_reviewed": "2026-03-12",
+        }
         path = save_override("test_product", override, tmp_path)
         assert path.exists()
         with open(path, "r", encoding="utf-8") as f:
@@ -328,11 +369,19 @@ class TestAutoFix:
 
     def test_save_override_merges_existing(self, tmp_path):
         # Write first override
-        first = {"microservices": False, "review_notes": "first", "last_reviewed": "2026-03-01"}
+        first = {
+            "microservices": False,
+            "review_notes": "first",
+            "last_reviewed": "2026-03-01",
+        }
         save_override("test_product", first, tmp_path)
 
         # Write second override — should merge
-        second = {"cloud_native": False, "review_notes": "second", "last_reviewed": "2026-03-12"}
+        second = {
+            "cloud_native": False,
+            "review_notes": "second",
+            "last_reviewed": "2026-03-12",
+        }
         path = save_override("test_product", second, tmp_path)
 
         with open(path, "r", encoding="utf-8") as f:
@@ -346,8 +395,8 @@ class TestAutoFix:
 # 8. Clean profile passes validation
 # ===================================================================
 
-class TestCleanProfile:
 
+class TestCleanProfile:
     def test_clean_profile_no_issues(self):
         profile = _make_profile()
         issues = validate_profile(profile)
@@ -371,8 +420,8 @@ class TestCleanProfile:
 # 9. Already-overridden profile not re-flagged
 # ===================================================================
 
-class TestAlreadyOverridden:
 
+class TestAlreadyOverridden:
     def test_overridden_false_not_flagged(self):
         """If cloud_native was already fixed to False via override, no error."""
         profile = _make_profile(
@@ -394,7 +443,9 @@ class TestAlreadyOverridden:
             },
         )
         issues = validate_profile(profile)
-        errors = [i for i in issues if i["level"] == ERROR and i["field"] == "has_analytics"]
+        errors = [
+            i for i in issues if i["level"] == ERROR and i["field"] == "has_analytics"
+        ]
         assert len(errors) == 0
 
     def test_auto_fix_skips_already_fixed(self):
@@ -413,8 +464,8 @@ class TestAlreadyOverridden:
 # validate_all with temp directory
 # ===================================================================
 
-class TestValidateAll:
 
+class TestValidateAll:
     def test_validate_all_scans_directory(self, tmp_path):
         # Write two profiles
         clean = _make_profile(product="clean_prod")

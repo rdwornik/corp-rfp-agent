@@ -30,9 +30,8 @@ from typing import List, Tuple, Dict, Optional, Any
 # openpyxl for Excel manipulation
 try:
     from openpyxl import load_workbook
-    from openpyxl.styles import PatternFill
-    from openpyxl.cell import Cell
     from openpyxl.utils import get_column_letter
+
     OPENPYXL_AVAILABLE = True
 except ImportError:
     OPENPYXL_AVAILABLE = False
@@ -52,28 +51,33 @@ from anonymization import AnonymizationMiddleware
 
 def call_llm_with_retry(llm_func, *args, max_retries=3, **kwargs):
     """Wrapper for LLM calls with exponential backoff retry for rate limits."""
-    last_error = None
-
     for attempt in range(max_retries):
         try:
             result = llm_func(*args, **kwargs)
 
             # Check if result contains error message
-            if isinstance(result, str) and ('429' in result or 'RESOURCE_EXHAUSTED' in result):
+            if isinstance(result, str) and (
+                "429" in result or "RESOURCE_EXHAUSTED" in result
+            ):
                 raise Exception(f"Rate limit error in response: {result[:100]}")
 
             return result
 
         except Exception as e:
             error_str = str(e)
-            last_error = e
 
             # Check for rate limit errors
-            if '429' in error_str or 'RESOURCE_EXHAUSTED' in error_str or 'quota' in error_str.lower():
-                wait_time = 30 * (2 ** attempt)  # 30s, 60s, 120s
+            if (
+                "429" in error_str
+                or "RESOURCE_EXHAUSTED" in error_str
+                or "quota" in error_str.lower()
+            ):
+                wait_time = 30 * (2**attempt)  # 30s, 60s, 120s
 
                 if attempt < max_retries - 1:
-                    print(f"[RETRY] Rate limited, waiting {wait_time}s before retry {attempt + 1}/{max_retries}...")
+                    print(
+                        f"[RETRY] Rate limited, waiting {wait_time}s before retry {attempt + 1}/{max_retries}..."
+                    )
                     time.sleep(wait_time)
                 else:
                     print(f"[ERROR] Rate limit exceeded after {max_retries} retries")
@@ -83,19 +87,20 @@ def call_llm_with_retry(llm_func, *args, max_retries=3, **kwargs):
 
     return f"ERROR: Rate limit exceeded after {max_retries} retries"
 
+
 # --- CONFIGURATION ---
 PLATFORM_MATRIX_PATH = PROJECT_ROOT / "config/platform_matrix.json"
 
 # Green color constant (ARGB format)
-GREEN_COLOR = 'FF00FF00'
-GREEN_COLOR_SHORT = '00FF00'
+GREEN_COLOR = "FF00FF00"
+GREEN_COLOR_SHORT = "00FF00"
 
 
 def get_available_solutions() -> List[str]:
     """Load available solutions from platform_matrix.json."""
     if not PLATFORM_MATRIX_PATH.exists():
         return []
-    with open(PLATFORM_MATRIX_PATH, 'r', encoding='utf-8') as f:
+    with open(PLATFORM_MATRIX_PATH, "r", encoding="utf-8") as f:
         data = json.load(f)
     return list(data.get("solutions", {}).keys())
 
@@ -113,8 +118,8 @@ def count_images_and_charts(workbook) -> Dict[str, int]:
     counts = {}
     for sheet_name in workbook.sheetnames:
         sheet = workbook[sheet_name]
-        image_count = len(getattr(sheet, '_images', []))
-        chart_count = len(getattr(sheet, '_charts', []))
+        image_count = len(getattr(sheet, "_images", []))
+        chart_count = len(getattr(sheet, "_charts", []))
         counts[sheet_name] = image_count + chart_count
     return counts
 
@@ -131,7 +136,7 @@ def is_green_cell(cell: Any) -> bool:
     Returns:
         True if cell has exact green fill color FF00FF00
     """
-    if not cell or not hasattr(cell, 'fill'):
+    if not cell or not hasattr(cell, "fill"):
         return False
 
     fill = cell.fill
@@ -139,9 +144,9 @@ def is_green_cell(cell: Any) -> bool:
         return False
 
     # Check fgColor (foreground color)
-    if hasattr(fill, 'fgColor') and fill.fgColor:
+    if hasattr(fill, "fgColor") and fill.fgColor:
         fg = fill.fgColor
-        if hasattr(fg, 'rgb') and fg.rgb:
+        if hasattr(fg, "rgb") and fg.rgb:
             rgb = str(fg.rgb).upper()
             # ONLY accept exact match: FF00FF00 or 00FF00
             if len(rgb) == 8:
@@ -150,9 +155,9 @@ def is_green_cell(cell: Any) -> bool:
                 return rgb == GREEN_COLOR_SHORT  # 00FF00 only
 
     # Check bgColor as fallback
-    if hasattr(fill, 'bgColor') and fill.bgColor:
+    if hasattr(fill, "bgColor") and fill.bgColor:
         bg = fill.bgColor
-        if hasattr(bg, 'rgb') and bg.rgb:
+        if hasattr(bg, "rgb") and bg.rgb:
             rgb = str(bg.rgb).upper()
             if len(rgb) == 8:
                 return rgb == GREEN_COLOR  # FF00FF00 only
@@ -174,7 +179,9 @@ def find_header_row(sheet) -> Optional[int]:
     """
     for row_idx in range(1, min(20, sheet.max_row + 1)):  # Check first 20 rows
         row_values = []
-        for col_idx in range(1, min(50, sheet.max_column + 1)):  # Check first 50 columns
+        for col_idx in range(
+            1, min(50, sheet.max_column + 1)
+        ):  # Check first 50 columns
             cell = sheet.cell(row=row_idx, column=col_idx)
             if cell.value and str(cell.value).strip():
                 row_values.append(str(cell.value).strip())
@@ -186,7 +193,9 @@ def find_header_row(sheet) -> Optional[int]:
     return 1  # Default to first row
 
 
-def detect_question_column(sheet, header_row: int) -> Tuple[Optional[int], Optional[str]]:
+def detect_question_column(
+    sheet, header_row: int
+) -> Tuple[Optional[int], Optional[str]]:
     """
     Detect the question column using priority-based pattern matching.
 
@@ -239,13 +248,19 @@ def detect_question_column(sheet, header_row: int) -> Tuple[Optional[int], Optio
 
         if count > 0 and (total_len / count) > 20:
             header_cell = sheet.cell(row=header_row, column=col_idx)
-            header_name = str(header_cell.value).strip() if header_cell.value else f"Column {col_idx}"
+            header_name = (
+                str(header_cell.value).strip()
+                if header_cell.value
+                else f"Column {col_idx}"
+            )
             return col_idx, header_name
 
     return None, None
 
 
-def detect_answer_column(sheet, header_row: int, question_col: int) -> Tuple[Optional[int], Optional[str]]:
+def detect_answer_column(
+    sheet, header_row: int, question_col: int
+) -> Tuple[Optional[int], Optional[str]]:
     """
     Detect the answer column using priority-based pattern matching.
 
@@ -342,7 +357,9 @@ def scan_green_cells(workbook) -> List[Dict]:
         # Find header and columns for this sheet
         header_row = find_header_row(sheet)
         question_col, question_col_name = detect_question_column(sheet, header_row)
-        answer_col, answer_col_name = detect_answer_column(sheet, header_row, question_col or 1)
+        answer_col, answer_col_name = detect_answer_column(
+            sheet, header_row, question_col or 1
+        )
 
         if not question_col:
             continue
@@ -363,20 +380,24 @@ def scan_green_cells(workbook) -> List[Dict]:
             if row_has_green:
                 # Get question text from the question column in this row
                 question_cell = sheet.cell(row=row_idx, column=question_col)
-                question_text = str(question_cell.value).strip() if question_cell.value else ""
+                question_text = (
+                    str(question_cell.value).strip() if question_cell.value else ""
+                )
 
                 if question_text:
-                    green_cells.append({
-                        "tab_name": sheet_name,
-                        "row": row_idx,
-                        "question_text": question_text,
-                        "question_col": question_col,
-                        "question_col_name": question_col_name,
-                        "answer_col": answer_col,
-                        "answer_col_name": answer_col_name,
-                        "header_row": header_row,
-                        "green_cell_col": green_col  # Track which cell was actually green
-                    })
+                    green_cells.append(
+                        {
+                            "tab_name": sheet_name,
+                            "row": row_idx,
+                            "question_text": question_text,
+                            "question_col": question_col,
+                            "question_col_name": question_col_name,
+                            "answer_col": answer_col,
+                            "answer_col_name": answer_col_name,
+                            "header_row": header_row,
+                            "green_cell_col": green_col,  # Track which cell was actually green
+                        }
+                    )
 
     return green_cells
 
@@ -385,7 +406,7 @@ def process_single_question(
     router: LLMRouter,
     question_text: str,
     model: str,
-    middleware: AnonymizationMiddleware
+    middleware: AnonymizationMiddleware,
 ) -> str:
     """
     Process a single question through the RAG pipeline.
@@ -407,7 +428,9 @@ def process_single_question(
         clean_question, ctx = middleware.before(question_text)
 
         # Call LLM with retry wrapper for rate limit handling
-        answer = call_llm_with_retry(router.generate_answer, clean_question, model=model)
+        answer = call_llm_with_retry(
+            router.generate_answer, clean_question, model=model
+        )
 
         # De-anonymize response
         final_answer = middleware.after(answer, ctx)
@@ -444,7 +467,7 @@ def dry_run_report(input_path: str, workbook, green_cells: List[Dict]) -> None:
                 "questions": [],
                 "question_col": cell_info["question_col_name"],
                 "answer_col": cell_info["answer_col_name"],
-                "header_row": cell_info["header_row"]
+                "header_row": cell_info["header_row"],
             }
         tabs_summary[tab]["count"] += 1
         tabs_summary[tab]["questions"].append(cell_info["question_text"])
@@ -483,7 +506,7 @@ def process_excel_file(
     model: str,
     anonymize: bool,
     dry_run: bool,
-    workers: int
+    workers: int,
 ) -> bool:
     """
     Main processing function for Excel files.
@@ -533,10 +556,14 @@ def process_excel_file(
 
     if not green_cells:
         print("[WARNING] No green cells found in the workbook.")
-        print("[INFO] Mark cells with green fill color (FF00FF00) to indicate questions to answer.")
+        print(
+            "[INFO] Mark cells with green fill color (FF00FF00) to indicate questions to answer."
+        )
         return True
 
-    print(f"[INFO] Found {len(green_cells)} green cells across {len(set(c['tab_name'] for c in green_cells))} tabs")
+    print(
+        f"[INFO] Found {len(green_cells)} green cells across {len(set(c['tab_name'] for c in green_cells))} tabs"
+    )
 
     # Dry run mode - just report
     if dry_run:
@@ -571,11 +598,7 @@ def process_excel_file(
         future_to_cell = {}
         for question_text, cell_info in tasks:
             future = executor.submit(
-                process_single_question,
-                router,
-                question_text,
-                model,
-                middleware
+                process_single_question, router, question_text, model, middleware
             )
             future_to_cell[future] = cell_info
 
@@ -587,15 +610,14 @@ def process_excel_file(
 
             # Store result keyed by (tab, row)
             key = (cell_info["tab_name"], cell_info["row"])
-            results[key] = {
-                "answer": answer,
-                "answer_col": cell_info["answer_col"]
-            }
+            results[key] = {"answer": answer, "answer_col": cell_info["answer_col"]}
 
             completed += 1
             if completed % 5 == 0 or completed == len(tasks):
                 pct = completed * 100 / len(tasks)
-                print(f"[INFO] Processing question {completed}/{len(tasks)} ({pct:.1f}%)")
+                print(
+                    f"[INFO] Processing question {completed}/{len(tasks)} ({pct:.1f}%)"
+                )
 
     # Write answers back to workbook
     print("[INFO] Writing answers to workbook...")
@@ -620,7 +642,9 @@ def process_excel_file(
     preserved_cells = total_cells - modified_cells
 
     # Safety logging
-    print(f"[SAFETY] Modified {modified_cells} cells (answer column in green-highlighted rows only)")
+    print(
+        f"[SAFETY] Modified {modified_cells} cells (answer column in green-highlighted rows only)"
+    )
     print(f"[SAFETY] Preserved {preserved_cells} cells unchanged")
 
     # Generate output path if not provided
@@ -652,8 +676,10 @@ def process_excel_file(
                 if total_images_after == total_images:
                     print(f"[SUCCESS] Preserved all {total_images} images/charts")
                 else:
-                    print(f"[WARNING] Image count changed: {total_images} -> {total_images_after}")
-                    print(f"[WARNING] Some images may not have been preserved correctly")
+                    print(
+                        f"[WARNING] Image count changed: {total_images} -> {total_images_after}"
+                    )
+                    print("[WARNING] Some images may not have been preserved correctly")
         except Exception as e:
             print(f"[WARNING] Could not verify image preservation: {e}")
 
@@ -663,7 +689,13 @@ def process_excel_file(
 
     # Summary
     elapsed = time.time() - start_time
-    successful = len([r for r in results.values() if r["answer"] and not r["answer"].startswith("ERROR")])
+    successful = len(
+        [
+            r
+            for r in results.values()
+            if r["answer"] and not r["answer"].startswith("ERROR")
+        ]
+    )
     errors = len([r for r in results.values() if r["answer"].startswith("ERROR")])
 
     print()
@@ -673,7 +705,9 @@ def process_excel_file(
     print(f"[INFO] Processed: {successful}/{len(results)} questions")
     if errors > 0:
         print(f"[WARNING] Errors: {errors} questions")
-    print(f"[INFO] Time: {elapsed:.1f}s ({elapsed/max(1,len(results)):.2f}s/question)")
+    print(
+        f"[INFO] Time: {elapsed:.1f}s ({elapsed / max(1, len(results)):.2f}s/question)"
+    )
     print("=" * 60)
 
     return True
@@ -692,66 +726,72 @@ Examples:
 
 Output: output_rfp_universal/{client}_{solution}_{model}_{YYYYMMDD}_{HHMM}.xlsx
 Example: output_rfp_universal/ifm_planning_gemini_20250102_1435.xlsx
-        """
+        """,
     )
 
     parser.add_argument(
-        "-i", "--input",
+        "-i", "--input", type=str, required=True, help="Input Excel file (required)"
+    )
+
+    parser.add_argument(
+        "-c",
+        "--client",
         type=str,
         required=True,
-        help="Input Excel file (required)"
+        help="Client name for output filename (required)",
     )
 
     parser.add_argument(
-        "-c", "--client",
-        type=str,
-        required=True,
-        help="Client name for output filename (required)"
-    )
-
-    parser.add_argument(
-        "-o", "--output",
+        "-o",
+        "--output",
         type=str,
         default=None,
-        help="Output file path (optional, auto-generated if not provided)"
+        help="Output file path (optional, auto-generated if not provided)",
     )
 
     # Get available solutions dynamically
     available_solutions = get_available_solutions()
     parser.add_argument(
-        "-s", "--solution",
+        "-s",
+        "--solution",
         type=str,
         default=None,
         choices=available_solutions if available_solutions else None,
         metavar="CODE",
-        help=f"Solution code for platform-aware responses. Available: {', '.join(available_solutions[:5])}..." if available_solutions else "Solution code (see platform_matrix.json)"
+        help=f"Solution code for platform-aware responses. Available: {', '.join(available_solutions[:5])}..."
+        if available_solutions
+        else "Solution code (see platform_matrix.json)",
     )
 
     parser.add_argument(
-        "-m", "--model",
+        "-m",
+        "--model",
         type=str,
         default="gemini",
         choices=["gemini", "gemini-flash", "sonnet", "gpt"],
-        help="LLM model to use (default: gemini)"
+        help="LLM model to use (default: gemini)",
     )
 
     parser.add_argument(
-        "-a", "--anonymize",
+        "-a",
+        "--anonymize",
         action="store_true",
-        help="Enable anonymization of customer data"
+        help="Enable anonymization of customer data",
     )
 
     parser.add_argument(
-        "-d", "--dry-run",
+        "-d",
+        "--dry-run",
         action="store_true",
-        help="Analyze file without processing or writing output"
+        help="Analyze file without processing or writing output",
     )
 
     parser.add_argument(
-        "-w", "--workers",
+        "-w",
+        "--workers",
         type=int,
         default=4,
-        help="Number of parallel workers (default: 4)"
+        help="Number of parallel workers (default: 4)",
     )
 
     return parser.parse_args()
@@ -761,7 +801,9 @@ def main():
     """Main entry point."""
     # Check openpyxl availability
     if not OPENPYXL_AVAILABLE:
-        print("[ERROR] openpyxl library is required. Install with: pip install openpyxl")
+        print(
+            "[ERROR] openpyxl library is required. Install with: pip install openpyxl"
+        )
         sys.exit(1)
 
     args = parse_args()
@@ -788,7 +830,7 @@ def main():
         model=args.model,
         anonymize=args.anonymize,
         dry_run=args.dry_run,
-        workers=args.workers
+        workers=args.workers,
     )
 
     sys.exit(0 if success else 1)

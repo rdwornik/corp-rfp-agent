@@ -34,6 +34,7 @@ _FB_COUNTER_PATH = KB_DIR / ".fb_counter"
 # Utilities
 # ---------------------------------------------------------------------------
 
+
 def _now_iso() -> str:
     return datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
 
@@ -64,6 +65,7 @@ def _next_feedback_id() -> str:
 # ---------------------------------------------------------------------------
 # Entry I/O
 # ---------------------------------------------------------------------------
+
 
 def load_entry(path: Path) -> dict:
     """Load a single entry JSON file."""
@@ -118,6 +120,7 @@ def find_entry_dir(entry_id: str) -> tuple[Optional[Path], Optional[str]]:
 # Feedback log (append-only)
 # ---------------------------------------------------------------------------
 
+
 def append_feedback_log(entry: dict) -> str:
     """Append one entry to feedback_log.jsonl. Returns feedback_id."""
     fb_id = _next_feedback_id()
@@ -135,11 +138,13 @@ def append_feedback_log(entry: dict) -> str:
 # Product profile / forbidden claims
 # ---------------------------------------------------------------------------
 
+
 def load_profile(family_code: str) -> dict:
     """Load effective product profile for a family."""
     path = PROFILES_DIR / f"{family_code}.yaml"
     if path.exists():
         import yaml
+
         with open(path, "r", encoding="utf-8") as f:
             return yaml.safe_load(f) or {}
     return {}
@@ -157,19 +162,57 @@ def check_forbidden_claims(answer: str, profile: dict) -> list[str]:
             if _match_term_in_text(term, answer_lower):
                 context = _get_context(answer_lower, term.lower())
                 if not _is_negated(context, term.lower()):
-                    violations.append(
-                        f"'{term}' in answer may violate: {claim}"
-                    )
+                    violations.append(f"'{term}' in answer may violate: {claim}")
     return violations
 
 
-_STOP_WORDS = frozenset({
-    "available", "service", "product", "platform", "not", "does", "use",
-    "is", "the", "for", "this", "that", "with", "and", "or", "as", "in",
-    "of", "has", "have", "can", "will", "may", "a", "an", "are", "was",
-    "were", "been", "being", "be", "to", "from", "by", "on", "at", "it",
-    "its", "their", "same", "way", "directly", "natively",
-})
+_STOP_WORDS = frozenset(
+    {
+        "available",
+        "service",
+        "product",
+        "platform",
+        "not",
+        "does",
+        "use",
+        "is",
+        "the",
+        "for",
+        "this",
+        "that",
+        "with",
+        "and",
+        "or",
+        "as",
+        "in",
+        "of",
+        "has",
+        "have",
+        "can",
+        "will",
+        "may",
+        "a",
+        "an",
+        "are",
+        "was",
+        "were",
+        "been",
+        "being",
+        "be",
+        "to",
+        "from",
+        "by",
+        "on",
+        "at",
+        "it",
+        "its",
+        "their",
+        "same",
+        "way",
+        "directly",
+        "natively",
+    }
+)
 
 
 def _extract_check_terms(claim: str) -> list[str]:
@@ -181,14 +224,14 @@ def _extract_check_terms(claim: str) -> list[str]:
         terms.append(svc_match.group(1))
         return terms
 
-    if not re.search(r'\b(?:NOT|not|does not|do not|cannot|is not)\b', claim):
+    if not re.search(r"\b(?:NOT|not|does not|do not|cannot|is not)\b", claim):
         cleaned = claim.strip(".,;:'\" ")
         if len(cleaned) >= 3:
             terms.append(cleaned)
         return terms
 
     matches = re.findall(
-        r'(?:NOT|not)\s+(?:use\s+|support\s+|have\s+|offer\s+|integrated\s+with\s+)?(\S+)',
+        r"(?:NOT|not)\s+(?:use\s+|support\s+|have\s+|offer\s+|integrated\s+with\s+)?(\S+)",
         claim,
     )
     for m in matches:
@@ -201,8 +244,9 @@ def _extract_check_terms(claim: str) -> list[str]:
             terms.append(cleaned)
 
     matches2 = re.findall(
-        r'(?:does not|do not|cannot|is not|are not)\s+\w+\s+(\w+(?:\s+\w+)?)',
-        claim, re.IGNORECASE,
+        r"(?:does not|do not|cannot|is not|are not)\s+\w+\s+(\w+(?:\s+\w+)?)",
+        claim,
+        re.IGNORECASE,
     )
     for m in matches2:
         cleaned = m.strip(".,;:'\"()")
@@ -221,7 +265,7 @@ def _match_term_in_text(term: str, text_lower: str) -> bool:
     term_lower = term.lower()
     if " " in term_lower:
         return term_lower in text_lower
-    pattern = r'\b' + re.escape(term_lower) + r'\b'
+    pattern = r"\b" + re.escape(term_lower) + r"\b"
     return bool(re.search(pattern, text_lower))
 
 
@@ -238,9 +282,16 @@ def _get_context(text: str, term: str, window: int = 60) -> str:
 def _is_negated(context: str, term: str) -> bool:
     """Check if term appears in a negated context."""
     negation_patterns = [
-        f"not {term}", f"not use {term}", f"not support {term}",
-        f"does not {term}", f"do not {term}", f"cannot {term}",
-        f"no {term}", f"without {term}", f"doesn't {term}", f"don't {term}",
+        f"not {term}",
+        f"not use {term}",
+        f"not support {term}",
+        f"does not {term}",
+        f"do not {term}",
+        f"cannot {term}",
+        f"no {term}",
+        f"without {term}",
+        f"doesn't {term}",
+        f"don't {term}",
     ]
     context_lower = context.lower()
     return any(pat in context_lower for pat in negation_patterns)
@@ -249,6 +300,7 @@ def _is_negated(context: str, term: str) -> bool:
 # ---------------------------------------------------------------------------
 # Commands
 # ---------------------------------------------------------------------------
+
 
 def cmd_show(entry_id: str) -> int:
     """Show entry details."""
@@ -277,8 +329,10 @@ def cmd_show(entry_id: str) -> int:
     if history:
         print(f"\nFeedback history ({len(history)} entries):")
         for h in history[-5:]:
-            print(f"  [{h.get('timestamp', '?')}] {h.get('action', '?')}: "
-                  f"{h.get('reason', h.get('correction', ''))[:80]}")
+            print(
+                f"  [{h.get('timestamp', '?')}] {h.get('action', '?')}: "
+                f"{h.get('reason', h.get('correction', ''))[:80]}"
+            )
 
     return 0
 
@@ -300,9 +354,9 @@ def cmd_correct_offline(entry_id: str, text: str, dry_run: bool = True) -> int:
 
     print(f"\nEntry: {entry_id}")
     print(f"Question: {entry['question'][:100]}")
-    print(f"\nBEFORE:")
+    print("\nBEFORE:")
     print(f"  {before_answer[:300]}{'...' if len(before_answer) > 300 else ''}")
-    print(f"\nAFTER:")
+    print("\nAFTER:")
     print(f"  {text[:300]}{'...' if len(text) > 300 else ''}")
 
     violations = check_forbidden_claims(text, profile)
@@ -317,31 +371,34 @@ def cmd_correct_offline(entry_id: str, text: str, dry_run: bool = True) -> int:
 
     entry["answer"] = text
     entry["last_updated"] = _today()
-    entry.setdefault("feedback_history", []).append({
-        "action": "corrected",
-        "timestamp": _now_iso(),
-        "correction": "(direct replacement)",
-        "before_hash": before_hash,
-        "after_hash": after_hash,
-    })
+    entry.setdefault("feedback_history", []).append(
+        {
+            "action": "corrected",
+            "timestamp": _now_iso(),
+            "correction": "(direct replacement)",
+            "before_hash": before_hash,
+            "after_hash": after_hash,
+        }
+    )
 
     save_entry(entry, path)
 
-    append_feedback_log({
-        "action": "correct",
-        "entry_id": entry_id,
-        "before_hash": before_hash,
-        "after_hash": after_hash,
-        "correction": "(direct replacement)",
-        "family": family,
-    })
+    append_feedback_log(
+        {
+            "action": "correct",
+            "entry_id": entry_id,
+            "before_hash": before_hash,
+            "after_hash": after_hash,
+            "correction": "(direct replacement)",
+            "family": family,
+        }
+    )
 
     print(f"\n[OK] {entry_id} corrected and saved")
     return 0
 
 
-def cmd_search(query: str, family: str | None = None,
-               top_k: int = 10) -> int:
+def cmd_search(query: str, family: str | None = None, top_k: int = 10) -> int:
     """Search KB entries by text."""
     results = _text_search(query, family, limit=top_k)
 
@@ -349,7 +406,7 @@ def cmd_search(query: str, family: str | None = None,
         print("[INFO] No matching entries found")
         return 0
 
-    print(f"\nSearch results for \"{query}\":")
+    print(f'\nSearch results for "{query}":')
     if family:
         print(f"  (filtered to family: {family})")
     print()
@@ -360,8 +417,7 @@ def cmd_search(query: str, family: str | None = None,
     return 0
 
 
-def _text_search(query: str, family: str | None = None,
-                 limit: int = 10) -> list[dict]:
+def _text_search(query: str, family: str | None = None, limit: int = 10) -> list[dict]:
     """Simple text search across KB entries."""
     results = []
     query_lower = query.lower()
@@ -382,14 +438,15 @@ def _text_search(query: str, family: str | None = None,
             if family and entry.get("family_code") != family:
                 continue
 
-            text = (entry.get("question", "") + " " +
-                    entry.get("answer", "")).lower()
+            text = (entry.get("question", "") + " " + entry.get("answer", "")).lower()
             if query_lower in text:
-                results.append({
-                    "id": entry.get("id", json_file.stem),
-                    "question": entry.get("question", ""),
-                    "family": entry.get("family_code", ""),
-                })
+                results.append(
+                    {
+                        "id": entry.get("id", json_file.stem),
+                        "question": entry.get("question", ""),
+                        "family": entry.get("family_code", ""),
+                    }
+                )
 
             if len(results) >= limit:
                 break
@@ -400,6 +457,7 @@ def _text_search(query: str, family: str | None = None,
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -423,12 +481,20 @@ Examples:
     p_correct = sub.add_parser("correct", help="Correct an entry's answer")
     p_correct.add_argument("entry_id", help="Entry ID")
     p_correct.add_argument("--text", required=True, help="New answer text")
-    p_correct.add_argument("--dry-run", action="store_true", default=True,
-                           help="Preview changes without applying (default)")
-    p_correct.add_argument("--apply", action="store_true",
-                           help="Actually apply the correction")
-    p_correct.add_argument("--offline", action="store_true",
-                           help="Use --text as literal new answer (no LLM)")
+    p_correct.add_argument(
+        "--dry-run",
+        action="store_true",
+        default=True,
+        help="Preview changes without applying (default)",
+    )
+    p_correct.add_argument(
+        "--apply", action="store_true", help="Actually apply the correction"
+    )
+    p_correct.add_argument(
+        "--offline",
+        action="store_true",
+        help="Use --text as literal new answer (no LLM)",
+    )
 
     # search
     p_search = sub.add_parser("search", help="Search KB entries")

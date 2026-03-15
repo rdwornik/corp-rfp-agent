@@ -12,11 +12,9 @@ Creates:
 
 from pathlib import Path
 from openpyxl import Workbook
-from openpyxl.styles import PatternFill, Font, Alignment
+from openpyxl.styles import PatternFill, Font
 from docx import Document
 from docx.shared import RGBColor, Pt
-from docx.oxml.ns import qn
-from docx.oxml import OxmlElement
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
@@ -25,15 +23,20 @@ FIXTURES_DIR = Path(__file__).parent / "fixtures"
 # EXCEL GOLDEN FIXTURE
 # =============================================================================
 
+
 def create_excel_golden():
     """Create golden Excel fixture exercising all edge cases."""
     wb = Workbook()
     ws = wb.active
     ws.title = "Requirements"
 
-    green_fill = PatternFill(start_color="FF00FF00", end_color="FF00FF00", fill_type="solid")
+    green_fill = PatternFill(
+        start_color="FF00FF00", end_color="FF00FF00", fill_type="solid"
+    )
     bold_font = Font(bold=True)
-    header_fill = PatternFill(start_color="FFD9E1F2", end_color="FFD9E1F2", fill_type="solid")
+    header_fill = PatternFill(
+        start_color="FFD9E1F2", end_color="FFD9E1F2", fill_type="solid"
+    )
 
     # Row 1: Headers
     headers = {
@@ -71,7 +74,9 @@ def create_excel_golden():
     ws["B4"].value = "Architecture"
     ws["C4"].value = "Describe the deployment architecture."
     ws["D4"].value = "Medium"
-    ws["E4"].value = "Blue Yonder supports cloud-native SaaS deployment on Microsoft Azure."
+    ws[
+        "E4"
+    ].value = "Blue Yonder supports cloud-native SaaS deployment on Microsoft Azure."
 
     # Row 5: Green cell — needs answer
     ws["A5"].value = "REQ-004"
@@ -86,13 +91,19 @@ def create_excel_golden():
     ws["B6"].value = "Compliance"
     ws["C6"].value = "Does the platform comply with GDPR?"
     ws["D6"].value = "High"
-    ws["E6"].value = "Yes, the platform is fully GDPR compliant with data residency options."
+    ws[
+        "E6"
+    ].value = "Yes, the platform is fully GDPR compliant with data residency options."
 
     # Row 7: Merged cell spanning C7:D7 — question in merged range
     ws.merge_cells("C7:D7")
     ws["A7"].value = "REQ-006"
     ws["B7"].value = "Performance"
-    ws["C7"].value = "The system must handle 10,000 concurrent users with sub-second response times."
+    ws[
+        "C7"
+    ].value = (
+        "The system must handle 10,000 concurrent users with sub-second response times."
+    )
     ws["E7"].value = None
     ws["E7"].fill = green_fill
 
@@ -108,7 +119,9 @@ def create_excel_golden():
     # Row 9: Special characters in question
     ws["A9"].value = "REQ-008"
     ws["B9"].value = "i18n"
-    ws["C9"].value = 'Does the system support "quotes" & unicode: \u0142\u00f3\u015b\u0107?'
+    ws[
+        "C9"
+    ].value = 'Does the system support "quotes" & unicode: \u0142\u00f3\u015b\u0107?'
     ws["D9"].value = "Low"
     ws["E9"].value = None
     ws["E9"].fill = green_fill
@@ -134,6 +147,7 @@ def create_excel_golden():
 # =============================================================================
 # WORD GOLDEN FIXTURE
 # =============================================================================
+
 
 def _add_bold_paragraph(doc, text):
     """Add a paragraph where all runs are bold."""
@@ -187,12 +201,8 @@ def create_word_golden():
 
     # Subsection: File Exchanges — level 2
     _add_bold_paragraph(doc, "File Exchanges")
-    doc.add_paragraph(
-        "The solution must support file-based data exchange via SFTP."
-    )
-    doc.add_paragraph(
-        "Supported formats must include CSV, XML, and JSON."
-    )
+    doc.add_paragraph("The solution must support file-based data exchange via SFTP.")
+    doc.add_paragraph("Supported formats must include CSV, XML, and JSON.")
     doc.add_paragraph(
         "File processing must support scheduling and error handling with retry logic."
     )
@@ -243,7 +253,7 @@ def create_word_golden():
     _add_blue_response(
         doc,
         "Blue Yonder provides built-in monitoring through Azure Monitor integration, "
-        "with configurable alerts and dashboards for real-time visibility."
+        "with configurable alerts and dashboards for real-time visibility.",
     )
 
     output_path = FIXTURES_DIR / "word_golden.docx"

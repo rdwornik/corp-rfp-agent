@@ -3,7 +3,6 @@
 import sys
 from pathlib import Path
 
-import pytest
 from openpyxl import load_workbook
 
 # Add src/ to import path

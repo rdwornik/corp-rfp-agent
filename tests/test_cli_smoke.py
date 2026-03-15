@@ -21,7 +21,9 @@ def test_cli_help(cmd):
         cmd,
         capture_output=True,
         text=True,
-        cwd=str(subprocess.os.path.dirname(subprocess.os.path.dirname(__file__)) or "."),
+        cwd=str(
+            subprocess.os.path.dirname(subprocess.os.path.dirname(__file__)) or "."
+        ),
         timeout=30,
     )
     assert result.returncode == 0, (

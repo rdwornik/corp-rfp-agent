@@ -118,7 +118,9 @@ def test_model_registry():
     assert MODELS["gpt"]["provider"] == "openai"
 
     # Verify gemini points to pro model
-    assert "pro" in MODELS["gemini"]["name"].lower() or "3.1" in MODELS["gemini"]["name"]
+    assert (
+        "pro" in MODELS["gemini"]["name"].lower() or "3.1" in MODELS["gemini"]["name"]
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -149,7 +151,7 @@ def test_only_three_providers():
 # ---------------------------------------------------------------------------
 def test_compare_mode_calls_both(monkeypatch):
     """compare_models() calls generate_answer for each requested model."""
-    from unittest.mock import MagicMock, patch
+    from unittest.mock import patch
 
     calls = []
 
@@ -158,9 +160,12 @@ def test_compare_mode_calls_both(monkeypatch):
         return f"Answer from {model}"
 
     # Patch LLMRouter.__init__ to avoid ChromaDB/file dependencies
-    with patch("llm_router.LLMRouter.__init__", return_value=None), \
-         patch("llm_router.LLMRouter.generate_answer", fake_generate):
+    with (
+        patch("llm_router.LLMRouter.__init__", return_value=None),
+        patch("llm_router.LLMRouter.generate_answer", fake_generate),
+    ):
         from llm_router import compare_models
+
         results = compare_models("test query", models=["gemini", "sonnet"])
 
     assert "gemini" in calls
@@ -238,9 +243,12 @@ def test_get_context_from_vault():
         }
     ]
 
-    with patch("llm_router.LLMRouter.__init__", return_value=None), \
-         patch("llm_router.vault_retrieve", return_value=vault_notes):
+    with (
+        patch("llm_router.LLMRouter.__init__", return_value=None),
+        patch("llm_router.vault_retrieve", return_value=vault_notes),
+    ):
         from llm_router import LLMRouter
+
         router = LLMRouter.__new__(LLMRouter)
         router.family = "wms"
         router.collection = None  # no ChromaDB
@@ -271,9 +279,12 @@ def test_get_context_fallback_to_chromadb():
         "domain": "planning",
     }
 
-    with patch("llm_router.LLMRouter.__init__", return_value=None), \
-         patch("llm_router.vault_retrieve", side_effect=Exception("vault down")):
+    with (
+        patch("llm_router.LLMRouter.__init__", return_value=None),
+        patch("llm_router.vault_retrieve", side_effect=Exception("vault down")),
+    ):
         from llm_router import LLMRouter
+
         router = LLMRouter.__new__(LLMRouter)
         router.family = "planning"
         router.collection = mock_collection

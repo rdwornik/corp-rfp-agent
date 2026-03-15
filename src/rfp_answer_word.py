@@ -24,7 +24,7 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 from docx import Document
-from docx.shared import RGBColor, Pt
+from docx.shared import RGBColor
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 
@@ -33,6 +33,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
 from dotenv import load_dotenv
+
 load_dotenv(PROJECT_ROOT / ".env", override=True)
 
 from google import genai
@@ -42,11 +43,18 @@ from google.genai import types
 try:
     import chromadb
     from chromadb.utils import embedding_functions
+
     CHROMADB_AVAILABLE = True
 except ImportError:
     CHROMADB_AVAILABLE = False
 
-from llm_router import MODELS, clean_bold_markdown, retry_with_backoff, extract_question, extract_answer
+from llm_router import (
+    MODELS,
+    clean_bold_markdown,
+    retry_with_backoff,
+    extract_question,
+    extract_answer,
+)
 from vault_adapter import retrieve as vault_retrieve
 
 # --- CONFIGURATION ---
@@ -60,13 +68,14 @@ BY_BLUE = RGBColor(0x00, 0x66, 0xCC)
 
 # --- DATA CLASSES ---
 
+
 @dataclass
 class Section:
-    level: int                    # 0 = chapter, 1 = section, 2 = subsection
+    level: int  # 0 = chapter, 1 = section, 2 = subsection
     title: str
-    para_index: int               # paragraph index in doc
-    content_paragraphs: list = field(default_factory=list)   # [(index, text), ...]
-    children: list = field(default_factory=list)             # list[Section]
+    para_index: int  # paragraph index in doc
+    content_paragraphs: list = field(default_factory=list)  # [(index, text), ...]
+    children: list = field(default_factory=list)  # list[Section]
 
     @property
     def full_content(self) -> str:
@@ -85,14 +94,15 @@ class Section:
 @dataclass
 class AnswerableBlock:
     section: Section
-    breadcrumb: str              # "Architecture > Integration > SAP ECC6 Interfaces"
-    content: str                 # all text in this section
-    insert_after_para: int       # where to insert the BY response
+    breadcrumb: str  # "Architecture > Integration > SAP ECC6 Interfaces"
+    content: str  # all text in this section
+    insert_after_para: int  # where to insert the BY response
     answer: str = ""
     kb_matches: list = field(default_factory=list)
 
 
 # --- LOAD FAMILY CONFIG ---
+
 
 def load_family_config():
     with open(FAMILY_CONFIG_PATH, "r", encoding="utf-8") as f:
@@ -107,6 +117,7 @@ def get_family_display_name(family_code: str) -> str:
 
 # --- HEADING DETECTION ---
 
+
 def detect_heading_level(paragraph) -> Optional[int]:
     """Detect heading level from formatting patterns. Returns 0-3 or None."""
     text = paragraph.text.strip()
@@ -117,7 +128,7 @@ def detect_heading_level(paragraph) -> Optional[int]:
 
     # Method 1: Proper Word heading styles (if they exist)
     if "Heading" in style:
-        m = re.search(r'(\d+)', style)
+        m = re.search(r"(\d+)", style)
         if m:
             return int(m.group(1)) - 1  # 0-indexed
 
@@ -134,15 +145,15 @@ def detect_heading_level(paragraph) -> Optional[int]:
     # Bold text -- now determine LEVEL from numbering pattern
 
     # Level 0: Roman numeral chapter (VIII. Architecture)
-    if re.match(r'^[IVXLCDM]+[\.\)]\s', text):
+    if re.match(r"^[IVXLCDM]+[\.\)]\s", text):
         return 0
 
     # Level 1: Numbered section (1. Macro Technical Architecture)
-    if re.match(r'^\d+[\.\)]\s', text):
+    if re.match(r"^\d+[\.\)]\s", text):
         return 1
 
     # Level 2: Sub-numbered (1.1 or 1.1. pattern)
-    if re.match(r'^\d+\.\d+[\.\)]?\s', text):
+    if re.match(r"^\d+\.\d+[\.\)]?\s", text):
         return 2
 
     # Level 2: Short bold text without numbers = subsection header
@@ -154,6 +165,7 @@ def detect_heading_level(paragraph) -> Optional[int]:
 
 
 # --- SECTION TREE BUILDING ---
+
 
 def build_section_tree(doc) -> list:
     """Parse document into section tree using auto-detected headings."""
@@ -195,34 +207,41 @@ def build_section_tree(doc) -> list:
 
 # --- COLLECT ANSWERABLE SECTIONS ---
 
+
 def collect_answerable_sections(sections: list) -> list:
     """Collect leaf sections (and parents with own content) that need BY answers."""
     blocks = []
 
     def walk(section, parent_context=""):
-        context = f"{parent_context} > {section.title}" if parent_context else section.title
+        context = (
+            f"{parent_context} > {section.title}" if parent_context else section.title
+        )
 
         if section.children:
             # Section has children -- answer each child, not the parent
             # BUT if parent has its own content paragraphs, answer those too
             if section.content_paragraphs:
-                blocks.append(AnswerableBlock(
-                    section=section,
-                    breadcrumb=context,
-                    content=section.full_content,
-                    insert_after_para=section.content_paragraphs[-1][0],
-                ))
+                blocks.append(
+                    AnswerableBlock(
+                        section=section,
+                        breadcrumb=context,
+                        content=section.full_content,
+                        insert_after_para=section.content_paragraphs[-1][0],
+                    )
+                )
             for child in section.children:
                 walk(child, context)
         else:
             # Leaf section -- answer it
             if section.content_paragraphs:
-                blocks.append(AnswerableBlock(
-                    section=section,
-                    breadcrumb=context,
-                    content=section.full_content,
-                    insert_after_para=section.content_paragraphs[-1][0],
-                ))
+                blocks.append(
+                    AnswerableBlock(
+                        section=section,
+                        breadcrumb=context,
+                        content=section.full_content,
+                        insert_after_para=section.content_paragraphs[-1][0],
+                    )
+                )
 
     for s in sections:
         walk(s)
@@ -232,10 +251,11 @@ def collect_answerable_sections(sections: list) -> list:
 
 # --- TREE DISPLAY ---
 
+
 def print_section_tree(sections: list, indent: int = 0):
     """Print the section tree for confirmation."""
     for i, section in enumerate(sections):
-        is_last = (i == len(sections) - 1)
+        is_last = i == len(sections) - 1
         prefix = " " * indent
         connector = "`-- " if is_last else "|-- "
 
@@ -267,6 +287,7 @@ def count_sections_recursive(sections: list) -> int:
 
 # --- KB RETRIEVAL ---
 
+
 class KBRetriever:
     """KB retriever for Word RFP answering.
 
@@ -295,7 +316,9 @@ class KBRetriever:
             self.collection = client_db.get_collection(
                 name=COLLECTION_NAME, embedding_function=ef
             )
-            print(f"[INFO] ChromaDB fallback: connected ({self.collection.count()} entries)")
+            print(
+                f"[INFO] ChromaDB fallback: connected ({self.collection.count()} entries)"
+            )
 
             if KB_JSON_PATH.exists():
                 with open(KB_JSON_PATH, "r", encoding="utf-8") as f:
@@ -324,7 +347,9 @@ class KBRetriever:
         # --- Fallback: ChromaDB ---
         return self._query_chromadb(text, family_code=family_code, k=k)
 
-    def _vault_notes_to_matches(self, notes: list[dict], family_code: str = None, k: int = 5) -> list:
+    def _vault_notes_to_matches(
+        self, notes: list[dict], family_code: str = None, k: int = 5
+    ) -> list:
         """Convert vault notes to (item, distance) tuples matching ChromaDB format."""
         matches = []
         for n in notes:
@@ -333,10 +358,16 @@ class KBRetriever:
                 "kb_id": str(n.get("note_id", "")),
                 "canonical_question": extract_question(content),
                 "canonical_answer": extract_answer(content),
-                "category": ", ".join(n.get("topics", [])[:2]) if n.get("topics") else "",
+                "category": ", ".join(n.get("topics", [])[:2])
+                if n.get("topics")
+                else "",
                 "subcategory": "",
-                "domain": ", ".join(n.get("products", [])[:1]) if n.get("products") else "",
-                "family_code": ", ".join(n.get("products", [])[:1]) if n.get("products") else "",
+                "domain": ", ".join(n.get("products", [])[:1])
+                if n.get("products")
+                else "",
+                "family_code": ", ".join(n.get("products", [])[:1])
+                if n.get("products")
+                else "",
                 "scope": "",
             }
             # Convert relevance_score (0-1, higher=better) to distance (lower=better)
@@ -354,7 +385,9 @@ class KBRetriever:
         matches = []
         if results["ids"] and results["ids"][0]:
             ids = results["ids"][0]
-            distances = results["distances"][0] if "distances" in results else [1.0] * len(ids)
+            distances = (
+                results["distances"][0] if "distances" in results else [1.0] * len(ids)
+            )
             for chroma_id, dist in zip(ids, distances):
                 item = self.kb_lookup.get(chroma_id)
                 if item:
@@ -362,15 +395,23 @@ class KBRetriever:
 
         # If family_code specified, boost matches from that domain
         if family_code and matches:
-            family_matches = [(item, dist) for item, dist in matches
-                              if item.get("domain") == family_code
-                              or item.get("family_code") == family_code]
-            platform_matches = [(item, dist) for item, dist in matches
-                                if item.get("scope") == "platform"
-                                or item.get("domain") == "platform"]
-            other_matches = [(item, dist) for item, dist in matches
-                             if (item, dist) not in family_matches
-                             and (item, dist) not in platform_matches]
+            family_matches = [
+                (item, dist)
+                for item, dist in matches
+                if item.get("domain") == family_code
+                or item.get("family_code") == family_code
+            ]
+            platform_matches = [
+                (item, dist)
+                for item, dist in matches
+                if item.get("scope") == "platform" or item.get("domain") == "platform"
+            ]
+            other_matches = [
+                (item, dist)
+                for item, dist in matches
+                if (item, dist) not in family_matches
+                and (item, dist) not in platform_matches
+            ]
             matches = family_matches + platform_matches + other_matches
 
         return matches[:k]
@@ -378,7 +419,10 @@ class KBRetriever:
 
 # --- ANSWER GENERATION ---
 
-def generate_answer(block: AnswerableBlock, family_display_name: str, model: str) -> str:
+
+def generate_answer(
+    block: AnswerableBlock, family_display_name: str, model: str
+) -> str:
     """Generate a BY answer for a section block using KB context + LLM."""
     # Format KB entries
     if block.kb_matches:
@@ -392,7 +436,9 @@ def generate_answer(block: AnswerableBlock, family_display_name: str, model: str
             )
         kb_context = "\n\n".join(kb_parts)
     else:
-        kb_context = "(No relevant KB entries found. Answer from general Blue Yonder knowledge.)"
+        kb_context = (
+            "(No relevant KB entries found. Answer from general Blue Yonder knowledge.)"
+        )
 
     prompt = f"""You are a Blue Yonder pre-sales engineer responding to a client RFP for {family_display_name}.
 
@@ -424,7 +470,7 @@ Return ONLY the answer text, no JSON wrapping, no prefix."""
         response = client.models.generate_content(
             model=model_name,
             contents=[{"role": "user", "parts": [{"text": prompt}]}],
-            config=types.GenerateContentConfig(temperature=0.3, max_output_tokens=2048)
+            config=types.GenerateContentConfig(temperature=0.3, max_output_tokens=2048),
         )
         return response.text.strip() if response.text else ""
 
@@ -434,45 +480,46 @@ Return ONLY the answer text, no JSON wrapping, no prefix."""
 
 # --- WORD DOC INSERTION ---
 
+
 def insert_answer_after(doc, paragraph_index: int, answer_text: str):
     """Insert a blue-colored BY Response paragraph after the given paragraph index."""
     target_para = doc.paragraphs[paragraph_index]
 
     # Create new paragraph element after target
-    new_para_elem = OxmlElement('w:p')
+    new_para_elem = OxmlElement("w:p")
     target_para._element.addnext(new_para_elem)
 
     # "BY Response: " in bold blue
-    run1 = OxmlElement('w:r')
-    rpr1 = OxmlElement('w:rPr')
-    bold1 = OxmlElement('w:b')
+    run1 = OxmlElement("w:r")
+    rpr1 = OxmlElement("w:rPr")
+    bold1 = OxmlElement("w:b")
     rpr1.append(bold1)
-    color1 = OxmlElement('w:color')
-    color1.set(qn('w:val'), '0066CC')
+    color1 = OxmlElement("w:color")
+    color1.set(qn("w:val"), "0066CC")
     rpr1.append(color1)
-    sz1 = OxmlElement('w:sz')
-    sz1.set(qn('w:val'), '20')  # 10pt = 20 half-points
+    sz1 = OxmlElement("w:sz")
+    sz1.set(qn("w:val"), "20")  # 10pt = 20 half-points
     rpr1.append(sz1)
     run1.append(rpr1)
-    text1 = OxmlElement('w:t')
+    text1 = OxmlElement("w:t")
     text1.text = "BY Response: "
-    text1.set(qn('xml:space'), 'preserve')
+    text1.set(qn("xml:space"), "preserve")
     run1.append(text1)
     new_para_elem.append(run1)
 
     # Answer text in regular blue
-    run2 = OxmlElement('w:r')
-    rpr2 = OxmlElement('w:rPr')
-    color2 = OxmlElement('w:color')
-    color2.set(qn('w:val'), '0066CC')
+    run2 = OxmlElement("w:r")
+    rpr2 = OxmlElement("w:rPr")
+    color2 = OxmlElement("w:color")
+    color2.set(qn("w:val"), "0066CC")
     rpr2.append(color2)
-    sz2 = OxmlElement('w:sz')
-    sz2.set(qn('w:val'), '20')
+    sz2 = OxmlElement("w:sz")
+    sz2.set(qn("w:val"), "20")
     rpr2.append(sz2)
     run2.append(rpr2)
-    text2 = OxmlElement('w:t')
+    text2 = OxmlElement("w:t")
     text2.text = answer_text
-    text2.set(qn('xml:space'), 'preserve')
+    text2.set(qn("xml:space"), "preserve")
     run2.append(text2)
     new_para_elem.append(run2)
 
@@ -480,17 +527,18 @@ def insert_answer_after(doc, paragraph_index: int, answer_text: str):
 def insert_blank_after(doc, paragraph_index: int):
     """Insert a blank paragraph after the given paragraph index."""
     target_para = doc.paragraphs[paragraph_index]
-    new_para_elem = OxmlElement('w:p')
+    new_para_elem = OxmlElement("w:p")
     target_para._element.addnext(new_para_elem)
 
 
 # --- DRY RUN ---
 
+
 def print_dry_run(blocks: list):
     """Print answerable sections without generating answers."""
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f" DRY RUN -- {len(blocks)} answerable sections")
-    print(f"{'='*60}\n")
+    print(f"{'=' * 60}\n")
     for i, block in enumerate(blocks, 1):
         content_preview = block.content[:120].replace("\n", " | ")
         print(f"  [{i:3d}] {block.breadcrumb}")
@@ -500,16 +548,17 @@ def print_dry_run(blocks: list):
 
 # --- INTERACTIVE REVIEW ---
 
+
 def interactive_review(blocks: list) -> list:
     """Let user review/edit answers interactively. Returns filtered blocks."""
     accepted = []
     total = len(blocks)
 
     for i, block in enumerate(blocks):
-        print(f"\n{'='*60}")
-        print(f" Section {i+1}/{total} | {block.breadcrumb}")
-        print(f"{'='*60}")
-        print(f"\n SECTION CONTENT:")
+        print(f"\n{'=' * 60}")
+        print(f" Section {i + 1}/{total} | {block.breadcrumb}")
+        print(f"{'=' * 60}")
+        print("\n SECTION CONTENT:")
         for line in block.content.split("\n"):
             print(f"   {line}")
 
@@ -522,12 +571,12 @@ def interactive_review(blocks: list) -> list:
                 match_strs.append(f"{item.get('kb_id', '?')} ({sim:.2f})")
             print(f"\n KB: {', '.join(match_strs)}")
 
-        print(f"\n [Y] Accept  [E] Edit  [N] Skip  [A] Accept all remaining  [Q] Quit")
+        print("\n [Y] Accept  [E] Edit  [N] Skip  [A] Accept all remaining  [Q] Quit")
         choice = input("> ").strip().upper()
 
         if choice == "A":
             accepted.append(block)
-            accepted.extend(blocks[i+1:])
+            accepted.extend(blocks[i + 1 :])
             print(f"   Accepted all {len(blocks) - i} remaining.")
             break
         elif choice == "Q":
@@ -555,19 +604,47 @@ def interactive_review(blocks: list) -> list:
 
 # --- MAIN ---
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Answer client requirements in a Word document")
+    parser = argparse.ArgumentParser(
+        description="Answer client requirements in a Word document"
+    )
     parser.add_argument("--input", "-i", required=True, help="Path to input .docx file")
-    parser.add_argument("--family", "-f", required=True, help="Product family code (e.g. network, wms, planning)")
-    parser.add_argument("--answer-model", default="gemini",
-                        help="LLM for answer generation (default: gemini = gemini-3.1-pro-preview)")
-    parser.add_argument("--model", "-m", default=None,
-                        help="Alias for --answer-model")
-    parser.add_argument("--dry-run", action="store_true", help="Show detected sections without answering")
-    parser.add_argument("--interactive", action="store_true", help="Review each answer before inserting")
-    parser.add_argument("--kb-threshold", type=float, default=0.75, help="Min similarity for KB match (default: 0.75)")
-    parser.add_argument("--top-k", type=int, default=5, help="Number of KB entries to retrieve (default: 5)")
-    parser.add_argument("--yes", "-y", action="store_true", help="Skip tree confirmation prompt")
+    parser.add_argument(
+        "--family",
+        "-f",
+        required=True,
+        help="Product family code (e.g. network, wms, planning)",
+    )
+    parser.add_argument(
+        "--answer-model",
+        default="gemini",
+        help="LLM for answer generation (default: gemini = gemini-3.1-pro-preview)",
+    )
+    parser.add_argument("--model", "-m", default=None, help="Alias for --answer-model")
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Show detected sections without answering",
+    )
+    parser.add_argument(
+        "--interactive", action="store_true", help="Review each answer before inserting"
+    )
+    parser.add_argument(
+        "--kb-threshold",
+        type=float,
+        default=0.75,
+        help="Min similarity for KB match (default: 0.75)",
+    )
+    parser.add_argument(
+        "--top-k",
+        type=int,
+        default=5,
+        help="Number of KB entries to retrieve (default: 5)",
+    )
+    parser.add_argument(
+        "--yes", "-y", action="store_true", help="Skip tree confirmation prompt"
+    )
     args = parser.parse_args()
 
     # --model is alias for --answer-model
@@ -582,14 +659,16 @@ def main():
         sys.exit(1)
 
     family_display = get_family_display_name(args.family)
-    print(f"\n[INFO] RFP Word Answerer (section-tree mode)")
+    print("\n[INFO] RFP Word Answerer (section-tree mode)")
     print(f"   Input:  {input_path.name}")
     print(f"   Family: {family_display} ({args.family})")
-    print(f"   Model:  {answer_model} ({MODELS.get(answer_model, {}).get('name', '?')})")
+    print(
+        f"   Model:  {answer_model} ({MODELS.get(answer_model, {}).get('name', '?')})"
+    )
     if args.dry_run:
-        print(f"   Mode:   DRY RUN")
+        print("   Mode:   DRY RUN")
     elif args.interactive:
-        print(f"   Mode:   INTERACTIVE")
+        print("   Mode:   INTERACTIVE")
     print()
 
     # Step 1: Parse Word doc
@@ -600,17 +679,19 @@ def main():
     print(f"   {total_paras} total paragraphs ({non_empty} non-empty)")
 
     # Step 2: Auto-detect headings and build section tree
-    print(f"\n[2/7] Building section tree (programmatic heading detection)...")
+    print("\n[2/7] Building section tree (programmatic heading detection)...")
     sections = build_section_tree(doc)
     total_sections = count_sections_recursive(sections)
     print(f"   {total_sections} sections detected")
 
     if not sections:
-        print("[ERROR] No sections detected. The document may not have recognizable headings.")
+        print(
+            "[ERROR] No sections detected. The document may not have recognizable headings."
+        )
         sys.exit(1)
 
     # Step 3: Print tree summary, confirm structure
-    print(f"\n[3/7] Document structure:\n")
+    print("\n[3/7] Document structure:\n")
     print_section_tree(sections)
 
     blocks = collect_answerable_sections(sections)
@@ -632,7 +713,7 @@ def main():
         return
 
     # Step 4: Query KB for each section
-    print(f"\n[4/7] Retrieving KB context...")
+    print("\n[4/7] Retrieving KB context...")
     retriever = KBRetriever()
     kb_used_count = 0
 
@@ -641,22 +722,26 @@ def main():
         matches = retriever.query(query_text, family_code=args.family, k=args.top_k)
 
         # Filter by similarity threshold
-        filtered = [(item, dist) for item, dist in matches if (1.0 - dist) >= args.kb_threshold]
+        filtered = [
+            (item, dist) for item, dist in matches if (1.0 - dist) >= args.kb_threshold
+        ]
         block.kb_matches = filtered if filtered else matches[:2]
 
         if filtered:
             kb_used_count += 1
 
         if (i + 1) % 10 == 0 or i == len(blocks) - 1:
-            print(f"   {i+1}/{len(blocks)} sections queried")
+            print(f"   {i + 1}/{len(blocks)} sections queried")
 
-    print(f"   KB matches (>={args.kb_threshold} similarity): {kb_used_count}/{len(blocks)}")
+    print(
+        f"   KB matches (>={args.kb_threshold} similarity): {kb_used_count}/{len(blocks)}"
+    )
 
     # Step 5: Generate answers
     print(f"\n[5/7] Generating answers ({answer_model})...")
     for i, block in enumerate(blocks):
         title_preview = block.section.title[:60]
-        print(f"   [{i+1}/{len(blocks)}] {title_preview}...")
+        print(f"   [{i + 1}/{len(blocks)}] {title_preview}...")
         block.answer = generate_answer(block, family_display, answer_model)
         if (i + 1) < len(blocks):
             time.sleep(0.3)  # rate limit courtesy
@@ -673,7 +758,7 @@ def main():
         return
 
     # Step 7: Insert answers into Word doc (BACKWARDS to avoid index shift)
-    print(f"\n[7/7] Inserting answers into document...")
+    print("\n[7/7] Inserting answers into document...")
     blocks_sorted = sorted(blocks, key=lambda b: b.insert_after_para, reverse=True)
 
     for block in blocks_sorted:
@@ -686,7 +771,7 @@ def main():
     doc.save(str(output_path))
 
     # Summary
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f" RFP Answer Complete: {input_path.name}")
     print(f"   Sections detected: {total_sections}")
     print(f"   Answerable: {total_answerable}")
@@ -694,9 +779,9 @@ def main():
     if args.interactive:
         print(f"   Skipped: {total_answerable - len(blocks)}")
     print(f"   KB matches used: {kb_used_count}")
-    print(f"")
+    print("")
     print(f"   Output: {output_path.name}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
 
 if __name__ == "__main__":

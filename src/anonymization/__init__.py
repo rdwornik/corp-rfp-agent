@@ -10,7 +10,7 @@ from .config import (
     get_session,
     set_session_customer,
     add_to_blocklist,
-    get_settings
+    get_settings,
 )
 from .middleware import AnonymizationMiddleware
 
@@ -27,5 +27,5 @@ __all__ = [
     "add_to_blocklist",
     "get_settings",
     # Middleware
-    "AnonymizationMiddleware"
+    "AnonymizationMiddleware",
 ]

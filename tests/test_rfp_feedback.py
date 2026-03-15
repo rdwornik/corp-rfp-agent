@@ -28,6 +28,7 @@ from rfp_feedback import (
 # Fixtures
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 def kb_dirs(tmp_path):
     """Create temp KB directory structure."""
@@ -82,33 +83,42 @@ def kb_dirs(tmp_path):
 # Tests: Entry I/O
 # ---------------------------------------------------------------------------
 
+
 class TestEntryIO:
     def test_find_entry_verified(self, kb_dirs):
-        with patch("rfp_feedback.VERIFIED_DIR", kb_dirs / "verified"), \
-             patch("rfp_feedback.DRAFTS_DIR", kb_dirs / "drafts"), \
-             patch("rfp_feedback.REJECTED_DIR", kb_dirs / "rejected"):
+        with (
+            patch("rfp_feedback.VERIFIED_DIR", kb_dirs / "verified"),
+            patch("rfp_feedback.DRAFTS_DIR", kb_dirs / "drafts"),
+            patch("rfp_feedback.REJECTED_DIR", kb_dirs / "rejected"),
+        ):
             path = find_entry("KB_0001")
             assert path is not None
             assert "KB_0001.json" in str(path)
 
     def test_find_entry_drafts(self, kb_dirs):
-        with patch("rfp_feedback.VERIFIED_DIR", kb_dirs / "verified"), \
-             patch("rfp_feedback.DRAFTS_DIR", kb_dirs / "drafts"), \
-             patch("rfp_feedback.REJECTED_DIR", kb_dirs / "rejected"):
+        with (
+            patch("rfp_feedback.VERIFIED_DIR", kb_dirs / "verified"),
+            patch("rfp_feedback.DRAFTS_DIR", kb_dirs / "drafts"),
+            patch("rfp_feedback.REJECTED_DIR", kb_dirs / "rejected"),
+        ):
             path = find_entry("KB_DRAFT_0001")
             assert path is not None
 
     def test_find_entry_not_found(self, kb_dirs):
-        with patch("rfp_feedback.VERIFIED_DIR", kb_dirs / "verified"), \
-             patch("rfp_feedback.DRAFTS_DIR", kb_dirs / "drafts"), \
-             patch("rfp_feedback.REJECTED_DIR", kb_dirs / "rejected"):
+        with (
+            patch("rfp_feedback.VERIFIED_DIR", kb_dirs / "verified"),
+            patch("rfp_feedback.DRAFTS_DIR", kb_dirs / "drafts"),
+            patch("rfp_feedback.REJECTED_DIR", kb_dirs / "rejected"),
+        ):
             path = find_entry("NONEXISTENT")
             assert path is None
 
     def test_find_entry_dir(self, kb_dirs):
-        with patch("rfp_feedback.VERIFIED_DIR", kb_dirs / "verified"), \
-             patch("rfp_feedback.DRAFTS_DIR", kb_dirs / "drafts"), \
-             patch("rfp_feedback.REJECTED_DIR", kb_dirs / "rejected"):
+        with (
+            patch("rfp_feedback.VERIFIED_DIR", kb_dirs / "verified"),
+            patch("rfp_feedback.DRAFTS_DIR", kb_dirs / "drafts"),
+            patch("rfp_feedback.REJECTED_DIR", kb_dirs / "rejected"),
+        ):
             path, dir_type = find_entry_dir("KB_0001")
             assert dir_type == "verified"
 
@@ -123,6 +133,7 @@ class TestEntryIO:
 # ---------------------------------------------------------------------------
 # Tests: Forbidden claims
 # ---------------------------------------------------------------------------
+
 
 class TestForbiddenClaims:
     def test_no_violations_clean_answer(self):
@@ -153,11 +164,14 @@ class TestForbiddenClaims:
 # Tests: Commands
 # ---------------------------------------------------------------------------
 
+
 class TestCmdShow:
     def test_show_existing(self, kb_dirs, capsys):
-        with patch("rfp_feedback.VERIFIED_DIR", kb_dirs / "verified"), \
-             patch("rfp_feedback.DRAFTS_DIR", kb_dirs / "drafts"), \
-             patch("rfp_feedback.REJECTED_DIR", kb_dirs / "rejected"):
+        with (
+            patch("rfp_feedback.VERIFIED_DIR", kb_dirs / "verified"),
+            patch("rfp_feedback.DRAFTS_DIR", kb_dirs / "drafts"),
+            patch("rfp_feedback.REJECTED_DIR", kb_dirs / "rejected"),
+        ):
             rc = cmd_show("KB_0001")
             assert rc == 0
             out = capsys.readouterr().out
@@ -165,19 +179,23 @@ class TestCmdShow:
             assert "99.97%" in out
 
     def test_show_not_found(self, kb_dirs, capsys):
-        with patch("rfp_feedback.VERIFIED_DIR", kb_dirs / "verified"), \
-             patch("rfp_feedback.DRAFTS_DIR", kb_dirs / "drafts"), \
-             patch("rfp_feedback.REJECTED_DIR", kb_dirs / "rejected"):
+        with (
+            patch("rfp_feedback.VERIFIED_DIR", kb_dirs / "verified"),
+            patch("rfp_feedback.DRAFTS_DIR", kb_dirs / "drafts"),
+            patch("rfp_feedback.REJECTED_DIR", kb_dirs / "rejected"),
+        ):
             rc = cmd_show("NONEXISTENT")
             assert rc == 1
 
 
 class TestCmdCorrectOffline:
     def test_dry_run(self, kb_dirs, capsys):
-        with patch("rfp_feedback.VERIFIED_DIR", kb_dirs / "verified"), \
-             patch("rfp_feedback.DRAFTS_DIR", kb_dirs / "drafts"), \
-             patch("rfp_feedback.REJECTED_DIR", kb_dirs / "rejected"), \
-             patch("rfp_feedback.PROFILES_DIR", kb_dirs / "profiles"):
+        with (
+            patch("rfp_feedback.VERIFIED_DIR", kb_dirs / "verified"),
+            patch("rfp_feedback.DRAFTS_DIR", kb_dirs / "drafts"),
+            patch("rfp_feedback.REJECTED_DIR", kb_dirs / "rejected"),
+            patch("rfp_feedback.PROFILES_DIR", kb_dirs / "profiles"),
+        ):
             rc = cmd_correct_offline("KB_0001", "New answer text.", dry_run=True)
             assert rc == 0
             out = capsys.readouterr().out
@@ -186,12 +204,14 @@ class TestCmdCorrectOffline:
     def test_apply(self, kb_dirs):
         fb_log = kb_dirs / "feedback_log.jsonl"
         fb_counter = kb_dirs / ".fb_counter"
-        with patch("rfp_feedback.VERIFIED_DIR", kb_dirs / "verified"), \
-             patch("rfp_feedback.DRAFTS_DIR", kb_dirs / "drafts"), \
-             patch("rfp_feedback.REJECTED_DIR", kb_dirs / "rejected"), \
-             patch("rfp_feedback.PROFILES_DIR", kb_dirs / "profiles"), \
-             patch("rfp_feedback.FEEDBACK_LOG", fb_log), \
-             patch("rfp_feedback._FB_COUNTER_PATH", fb_counter):
+        with (
+            patch("rfp_feedback.VERIFIED_DIR", kb_dirs / "verified"),
+            patch("rfp_feedback.DRAFTS_DIR", kb_dirs / "drafts"),
+            patch("rfp_feedback.REJECTED_DIR", kb_dirs / "rejected"),
+            patch("rfp_feedback.PROFILES_DIR", kb_dirs / "profiles"),
+            patch("rfp_feedback.FEEDBACK_LOG", fb_log),
+            patch("rfp_feedback._FB_COUNTER_PATH", fb_counter),
+        ):
             rc = cmd_correct_offline("KB_0001", "Updated answer.", dry_run=False)
             assert rc == 0
             # Verify entry was updated
@@ -201,30 +221,38 @@ class TestCmdCorrectOffline:
             assert entry["answer"] == "Updated answer."
 
     def test_not_found(self, kb_dirs):
-        with patch("rfp_feedback.VERIFIED_DIR", kb_dirs / "verified"), \
-             patch("rfp_feedback.DRAFTS_DIR", kb_dirs / "drafts"), \
-             patch("rfp_feedback.REJECTED_DIR", kb_dirs / "rejected"):
+        with (
+            patch("rfp_feedback.VERIFIED_DIR", kb_dirs / "verified"),
+            patch("rfp_feedback.DRAFTS_DIR", kb_dirs / "drafts"),
+            patch("rfp_feedback.REJECTED_DIR", kb_dirs / "rejected"),
+        ):
             rc = cmd_correct_offline("NOPE", "text", dry_run=True)
             assert rc == 1
 
 
 class TestCmdSearch:
     def test_text_search_found(self, kb_dirs):
-        with patch("rfp_feedback.VERIFIED_DIR", kb_dirs / "verified"), \
-             patch("rfp_feedback.DRAFTS_DIR", kb_dirs / "drafts"):
+        with (
+            patch("rfp_feedback.VERIFIED_DIR", kb_dirs / "verified"),
+            patch("rfp_feedback.DRAFTS_DIR", kb_dirs / "drafts"),
+        ):
             results = _text_search("SLA")
             assert len(results) >= 1
             assert results[0]["id"] == "KB_0001"
 
     def test_text_search_family_filter(self, kb_dirs):
-        with patch("rfp_feedback.VERIFIED_DIR", kb_dirs / "verified"), \
-             patch("rfp_feedback.DRAFTS_DIR", kb_dirs / "drafts"):
+        with (
+            patch("rfp_feedback.VERIFIED_DIR", kb_dirs / "verified"),
+            patch("rfp_feedback.DRAFTS_DIR", kb_dirs / "drafts"),
+        ):
             results = _text_search("SLA", family="wms")
             assert len(results) == 0
 
     def test_search_no_results(self, kb_dirs, capsys):
-        with patch("rfp_feedback.VERIFIED_DIR", kb_dirs / "verified"), \
-             patch("rfp_feedback.DRAFTS_DIR", kb_dirs / "drafts"):
+        with (
+            patch("rfp_feedback.VERIFIED_DIR", kb_dirs / "verified"),
+            patch("rfp_feedback.DRAFTS_DIR", kb_dirs / "drafts"),
+        ):
             rc = cmd_search("xyznonexistent123")
             assert rc == 0
             assert "No matching" in capsys.readouterr().out

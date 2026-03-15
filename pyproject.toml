@@ -16,6 +16,10 @@ test = [
     "pytest-cov>=4.0",
 ]
 
+[tool.ruff.lint]
+# E402: load_dotenv() and sys.path.insert() must run before env-dependent imports
+ignore = ["E402"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]

@@ -1,94 +1,78 @@
 # Corp RFP Agent
 
-AI-powered RFP answering engine for Blue Yonder pre-sales.
-Reads Excel/Word RFP files, finds answers from knowledge vault,
-returns filled documents with Blue Yonder responses.
+AI-powered RFP answering engine for Blue Yonder pre-sales engineering. Reads Excel or Word RFP documents, retrieves relevant answers from a knowledge vault of 1,329 curated entries across 41 product families, generates professional responses via LLM (Gemini, Claude, or GPT), and writes them back into the original file. Includes product profile guardrails to prevent hallucinations and client name anonymization for safe API calls.
 
-## How It Works
+## Features
 
-1. Drop Excel with green-highlighted question cells (or Word doc)
-2. Agent finds relevant answers from knowledge vault
-3. LLM generates professional Blue Yonder response
-4. Output: same file with answers filled in
+- **Excel agent** -- detects green-highlighted cells as questions, writes answers to the adjacent column
+- **Word agent** -- parses document section tree, inserts answers below each section heading
+- **Multi-model routing** -- Gemini 3.1 Pro (default), Claude Sonnet 4.6, GPT-4o, with model comparison mode
+- **Knowledge vault** -- FTS5 full-text search over 1,329 markdown entries with product/topic filtering
+- **Product profiles** -- 41 YAML profiles with `forbidden_claims` guardrails (e.g., WMS won't claim Snowflake support)
+- **Anonymization** -- YAML-based blocklist masks client names before LLM API calls
+- **Answer quality scoring** -- 5-stage pipeline for IMPROVE mode (red flag detection, similarity bucketing, scoring, LLM judge)
+
+## Installation
+
+```bash
+pip install -e ".[dev]"
+```
+
+Create `.env` with at least `GEMINI_API_KEY=...` (Claude and GPT keys optional).
 
 ## Usage
 
 ```bash
-# Answer RFP Excel
+# Answer RFP Excel (green-cell detection)
 python src/rfp_excel_agent.py --input "RFP.xlsx" --client acme --solution planning --model gemini
 
 # Answer RFP Word doc
 python src/rfp_answer_word.py --input "RFP.docx" --solution wms --model gemini
 
-# Compare models on a question
-python src/llm_router.py --compare --query "How does WMS integrate?"
+# Compare models side by side
+python src/llm_router.py --compare --query "How does WMS handle integration?"
 
 # Correct a KB entry
-python src/rfp_feedback.py correct KB_0234 --text "Fix: remove JSON" --offline --apply
+python src/rfp_feedback.py correct KB_0234 --text "Updated answer" --offline --apply
 
-# Validate product profiles
+# Validate product profiles for contradictions
 python src/validate_profiles.py
+
+# Dry-run mode (analyze without writing)
+python src/rfp_excel_agent.py --input "RFP.xlsx" --client test --dry-run
 ```
 
-## Models
-
-| Key | Model | Use |
-|-----|-------|-----|
-| gemini | Gemini 3.1 Pro | Default for answers |
-| gemini-flash | Gemini 3 Flash | Classification |
-| sonnet | Claude Sonnet 4.6 | Alternative |
-| gpt | GPT-4o | Alternative |
-
-## Project Structure
+## Architecture
 
 ```
 src/
-  rfp_excel_agent.py       Excel RFP answering (green cells)
-  rfp_answer_word.py        Word RFP answering (section tree)
+  rfp_excel_agent.py       Excel RFP agent (green-cell detection)
+  rfp_answer_word.py        Word RFP agent (section tree parsing)
   llm_router.py             LLM routing (4 models, 3 providers)
   vault_adapter.py          Knowledge retrieval (vault FTS5)
   answer_selector.py        Answer quality scoring (5-stage)
   rfp_feedback.py           KB corrections (show/correct/search)
   validate_profiles.py      Product profile validation
   kb_to_markdown.py         KB migration utility
-  anonymization/            Client name masking
-config/
-  product_profiles/         41 product profiles + overrides
-  overrides.yaml            Term replacements (JDA -> Blue Yonder)
-  anonymization.yaml        Anonymization patterns
-prompts/
-  rfp_system_prompt_universal.txt
-data/kb/
-  verified/{family}/        1,155 production KB entries (JSON)
-  drafts/{family}/          174 draft entries pending review
-tests/                      151 tests
+  anonymization/            Client name masking package
 ```
-
-## Product Profiles
-
-41 profiles with `forbidden_claims` guardrails prevent
-hallucinations (e.g., WMS won't claim to use Snowflake).
-Override via `config/product_profiles/_overrides/`.
-
-## Knowledge Base
-
-1,329 entries migrated to `corp_data/rfp_kb/` as markdown.
-Retrieved via corp vault FTS5 index.
-JSON source files retained in `data/kb/` as backup.
-
-## Configuration
-
-- `.env`: `GEMINI_API_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`
-- `config/overrides.yaml`: term replacements
-- `config/product_profiles/_effective/`: active profiles
-- `config/anonymization.yaml`: client name masking patterns
 
 ## Testing
 
 ```bash
-python -m pytest tests/ -v
+python -m pytest
 ```
+
+151 tests across 8 files covering Excel/Word agents, LLM routing, answer scoring, profile validation, vault retrieval, and feedback CLI.
+
+## Related repos
+
+- **corp-by-os** -- orchestrator
+- **corp-os-meta** -- shared schemas
+- **corp-knowledge-extractor** -- extraction engine
+- **corp-rfp-agent** -- this repo
+- **ai-council** -- multi-model debate
 
 ## License
 
-Internal use only -- Blue Yonder Presales.
+Internal use only -- Blue Yonder Pre-Sales Engineering.

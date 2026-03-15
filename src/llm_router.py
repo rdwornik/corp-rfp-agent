@@ -35,33 +35,13 @@ DEBUG = os.environ.get("DEBUG_RAG", "0") == "1"  # Set DEBUG_RAG=1 to enable deb
 
 # --- MODEL REGISTRY ---
 MODELS = {
-    # Google
+    # Google Gemini
     "gemini": {"name": "gemini-3.1-pro-preview", "provider": "google"},
     "gemini-flash": {"name": "gemini-3-flash-preview", "provider": "google"},
-    # Anthropic
+    # Anthropic Claude
     "sonnet": {"name": "claude-sonnet-4-6", "provider": "anthropic"},
-    "claude": {"name": "claude-sonnet-4-6", "provider": "anthropic"},
-    "claude-opus": {"name": "claude-opus-4-6", "provider": "anthropic"},
     # OpenAI
-    "gpt5": {"name": "gpt-5.2", "provider": "openai"},
-    "o3": {"name": "o3", "provider": "openai"},
-    # xAI
-    "grok": {"name": "grok-3-beta", "provider": "xai"},
-    # DeepSeek
-    "deepseek": {"name": "deepseek-chat", "provider": "deepseek"},
-    "deepseek-r1": {"name": "deepseek-reasoner", "provider": "deepseek"},
-    # Moonshot (Kimi)
-    "kimi": {"name": "kimi-k2-0905", "provider": "moonshot"},
-    # Meta (via Together)
-    "llama": {"name": "meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8", "provider": "together"},
-    # Perplexity
-    "perplexity": {"name": "sonar-pro", "provider": "perplexity"},
-    # Mistral
-    "mistral": {"name": "mistral-large-latest", "provider": "mistral"},
-    # Alibaba (Qwen)
-    "qwen": {"name": "qwen3-235b-a22b", "provider": "alibaba"},
-    # Zhipu (GLM)
-    "glm": {"name": "glm-4.7", "provider": "zhipu"},    
+    "gpt": {"name": "gpt-4o", "provider": "openai"},
 }
 
 def load_system_prompt() -> str:
@@ -256,7 +236,7 @@ class LLMRouter:
                 )
                 return message.content[0].text.strip()
 
-            # --- OPENAI GPT-5 ---
+            # --- OPENAI ---
             elif provider == "openai":
                 if not OPENAI_AVAILABLE:
                     return "Error: OpenAI SDK not installed"
@@ -268,121 +248,6 @@ class LLMRouter:
                     temperature=0.3
                 )
                 return response.choices[0].message.content.strip()
-
-            # --- DEEPSEEK ---
-            elif provider == "deepseek":
-                if not OPENAI_AVAILABLE:
-                    return "Error: OpenAI SDK not installed"
-                client = OpenAI(
-                    api_key=os.environ.get("DEEPSEEK_API_KEY"),
-                    base_url="https://api.deepseek.com/v1"
-                )
-                response = client.chat.completions.create(
-                    model=model_name,
-                    messages=[{"role": "user", "content": prompt}],
-                    max_tokens=4096
-                )
-                return response.choices[0].message.content.strip()
-
-            # --- KIMI K2 (Moonshot) ---
-            elif provider == "moonshot":
-                if not OPENAI_AVAILABLE:
-                    return "Error: OpenAI SDK not installed"
-                client = OpenAI(
-                    api_key=os.environ.get("MOONSHOT_API_KEY"),
-                    base_url="https://api.moonshot.ai/v1"
-                )
-                response = client.chat.completions.create(
-                    model=model_name,
-                    messages=[{"role": "user", "content": prompt}],
-                    max_tokens=4096
-                )
-                return response.choices[0].message.content.strip()
-
-            # --- LLAMA 4 (via Together.ai) ---
-            elif provider == "together":
-                if not OPENAI_AVAILABLE:
-                    return "Error: OpenAI SDK not installed"
-                client = OpenAI(
-                    api_key=os.environ.get("TOGETHER_API_KEY"),
-                    base_url="https://api.together.xyz/v1"
-                )
-                response = client.chat.completions.create(
-                    model=model_name,
-                    messages=[{"role": "user", "content": prompt}],
-                    max_tokens=4096
-                )
-                return response.choices[0].message.content.strip()
-
-            # --- GROK (xAI) ---
-            elif provider == "xai":
-                if not OPENAI_AVAILABLE:
-                    return "Error: OpenAI SDK not installed"
-                client = OpenAI(
-                    api_key=os.environ.get("XAI_API_KEY"),
-                    base_url="https://api.x.ai/v1"
-                )
-                response = client.chat.completions.create(
-                    model=model_name,
-                    messages=[{"role": "user", "content": prompt}],
-                    max_tokens=4096
-                )
-                return response.choices[0].message.content.strip()
-            # --- PERPLEXITY ---
-            elif provider == "perplexity":
-                client = OpenAI(
-                    api_key=os.environ.get("PERPLEXITY_API_KEY"),
-                    base_url="https://api.perplexity.ai"
-                )
-                response = client.chat.completions.create(
-                    model=model_name,
-                    messages=[{"role": "user", "content": prompt}],
-                    max_tokens=4096
-                )
-                return clean_bold_markdown(response.choices[0].message.content.strip())
-
-            # --- MISTRAL ---
-            elif provider == "mistral":
-                client = OpenAI(
-                    api_key=os.environ.get("MISTRAL_API_KEY"),
-                    base_url="https://api.mistral.ai/v1"
-                )
-                response = client.chat.completions.create(
-                    model=model_name,
-                    messages=[{"role": "user", "content": prompt}],
-                    max_tokens=4096
-                )
-                return clean_bold_markdown(response.choices[0].message.content.strip())
-
-            # --- ALIBABA (QWEN) ---
-            elif provider == "alibaba":
-                client = OpenAI(
-                    api_key=os.environ.get("DASHSCOPE_API_KEY"),
-                    base_url="https://dashscope.aliyuncs.com/compatible-mode/v1"
-                )
-                response = client.chat.completions.create(
-                    model=model_name,
-                    messages=[{"role": "user", "content": prompt}],
-                    max_tokens=4096
-                )
-                return clean_bold_markdown(response.choices[0].message.content.strip())
-
-            # --- ZHIPU (GLM) ---
-            elif provider == "zhipu":
-                def call_glm():
-                    client = OpenAI(
-                        api_key=os.environ.get("ZHIPU_API_KEY"),
-                        base_url="https://api.z.ai/api/paas/v4/"
-                    )
-                    response = client.chat.completions.create(
-                        model=model_name,
-                        messages=[{"role": "user", "content": prompt}],
-                        max_tokens=8192
-                    )
-                    return response.choices[0].message.content.strip()
-                
-                result = retry_with_backoff(call_glm, max_retries=5, base_delay=2)
-                return clean_bold_markdown(result)
 
             else:
                 return f"Error: Unknown provider {provider}"

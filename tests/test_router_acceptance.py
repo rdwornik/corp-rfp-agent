@@ -99,28 +99,33 @@ def test_non_rate_limit_error_not_retried():
 # Test 5: Model registry has expected entries
 # ---------------------------------------------------------------------------
 def test_model_registry():
-    """Model registry contains expected providers and model names."""
+    """Model registry contains exactly 4 models with correct providers."""
     from llm_router import MODELS
 
-    # Verify key models exist
-    assert "gemini" in MODELS
-    assert "gemini-flash" in MODELS
-    assert "claude" in MODELS
+    # Verify exactly 4 models
+    assert len(MODELS) == 4
+    assert set(MODELS.keys()) == {"gemini", "gemini-flash", "sonnet", "gpt"}
 
     # Verify structure
     for key, config in MODELS.items():
         assert "name" in config, f"Model {key} missing 'name'"
         assert "provider" in config, f"Model {key} missing 'provider'"
 
+    # Verify providers
+    assert MODELS["gemini"]["provider"] == "google"
+    assert MODELS["gemini-flash"]["provider"] == "google"
+    assert MODELS["sonnet"]["provider"] == "anthropic"
+    assert MODELS["gpt"]["provider"] == "openai"
+
     # Verify gemini points to pro model
     assert "pro" in MODELS["gemini"]["name"].lower() or "3.1" in MODELS["gemini"]["name"]
 
 
 # ---------------------------------------------------------------------------
-# Test 6: Sonnet alias in model registry
+# Test 6: Sonnet in model registry
 # ---------------------------------------------------------------------------
 def test_models_dict_has_sonnet():
-    """Model registry has 'sonnet' alias pointing to claude-sonnet-4-6."""
+    """Model registry has 'sonnet' pointing to claude-sonnet-4-6."""
     from llm_router import MODELS
 
     assert "sonnet" in MODELS
@@ -129,18 +134,14 @@ def test_models_dict_has_sonnet():
 
 
 # ---------------------------------------------------------------------------
-# Test 7: Anthropic provider routing
+# Test 7: Only 3 providers remain
 # ---------------------------------------------------------------------------
-def test_anthropic_provider_routing():
-    """Sonnet and claude keys route to anthropic provider."""
+def test_only_three_providers():
+    """Only google, anthropic, and openai providers exist."""
     from llm_router import MODELS
 
-    assert MODELS["sonnet"]["provider"] == "anthropic"
-    assert MODELS["claude"]["provider"] == "anthropic"
-    assert MODELS["claude-opus"]["provider"] == "anthropic"
-    # All anthropic models should have claude in the name
-    for key in ("sonnet", "claude", "claude-opus"):
-        assert "claude" in MODELS[key]["name"]
+    providers = {config["provider"] for config in MODELS.values()}
+    assert providers == {"google", "anthropic", "openai"}
 
 
 # ---------------------------------------------------------------------------

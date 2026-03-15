@@ -731,7 +731,7 @@ Example: output_rfp_universal/ifm_planning_gemini_20250102_1435.xlsx
         "-m", "--model",
         type=str,
         default="gemini",
-        choices=["gemini", "gemini-flash", "claude", "claude-opus", "gpt5", "o3", "deepseek", "deepseek-r1", "kimi", "llama", "grok", "perplexity", "mistral", "qwen", "glm"],
+        choices=["gemini", "gemini-flash", "sonnet", "gpt"],
         help="LLM model to use (default: gemini)"
     )
 

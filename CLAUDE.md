@@ -45,6 +45,14 @@ De-anonymize + write back to file
 - `src/validate_profiles.py` -- product profile validation (contradictions, missing data)
 - `src/kb_to_markdown.py` -- one-time KB JSON to markdown migration
 
+## Integration points
+
+- **corp-by-os**: retrieves knowledge via `corp retrieve --format json` (primary path)
+- **corp-os-meta**: product name mappings (planned integration)
+- **Knowledge base**: reads from `C:\Users\1028120\Documents\corp_data\rfp_kb\` (1,329 entries, FTS5 index)
+
+RFP agent is a CONSUMER — it reads from the vault via corp-by-os CLI, does not write to it.
+
 ## Dev standards
 
 - Python 3.12+, Windows-first (paths via `pathlib`)
@@ -155,7 +163,8 @@ This repo uses: `GEMINI_API_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`
 
 ## Related repos
 
-- **corp-by-os** -- orchestrator
-- **corp-os-meta** -- shared schemas
-- **corp-knowledge-extractor** -- extraction engine
-- **ai-council** -- multi-model debate
+- [ECOSYSTEM.md](../ECOSYSTEM.md) — full ecosystem overview
+- [corp-by-os](../corp-by-os/) — orchestrator (provides `corp retrieve`)
+- [corp-os-meta](../corp-os-meta/) — shared schemas
+- [corp-knowledge-extractor](../corp-knowledge-extractor/) — extraction engine
+- [ai-council](../ai-council/) — multi-model debate

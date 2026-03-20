@@ -20,7 +20,10 @@ ENV/
 .vscode/
 .idea/
 *.code-workspace
-.claude/
+.claude/settings.local.json
+
+# --- Ruff ---
+.ruff_cache/
 
 # --- OS cruft ---
 .DS_Store

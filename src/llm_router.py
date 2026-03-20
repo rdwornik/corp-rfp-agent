@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 # Define project root and load .env file explicitly
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 ENV_PATH = PROJECT_ROOT / ".env"
-load_dotenv(ENV_PATH, override=True)
+load_dotenv(ENV_PATH, override=False)
 
 from google import genai
 from google.genai import types

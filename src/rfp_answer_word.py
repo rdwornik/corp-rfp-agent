@@ -34,7 +34,7 @@ sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
 from dotenv import load_dotenv
 
-load_dotenv(PROJECT_ROOT / ".env", override=True)
+load_dotenv(PROJECT_ROOT / ".env", override=False)
 
 from google import genai
 from google.genai import types

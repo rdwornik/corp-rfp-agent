@@ -55,7 +55,7 @@ def test_claude():
     try:
         client = anthropic.Anthropic(api_key=api_key)
         message = client.messages.create(
-            model="claude-sonnet-4-5",
+            model="claude-sonnet-4-6",
             max_tokens=10,
             messages=[{"role": "user", "content": "Say hello"}]
         )
@@ -112,7 +112,7 @@ def test_gemini():
     try:
         client = genai.Client(api_key=api_key)
         response = client.models.generate_content(
-            model="gemini-2.0-flash-exp",
+            model="gemini-3-flash-preview",
             contents=[{"role": "user", "parts": [{"text": "Say hello"}]}],
             config=types.GenerateContentConfig(max_output_tokens=10)
         )

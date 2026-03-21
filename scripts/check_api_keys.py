@@ -5,9 +5,14 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-# Load .env
+# Global API keys (Documents/.secrets/.env)
+_global_env = Path.home() / "Documents" / ".secrets" / ".env"
+if _global_env.exists():
+    load_dotenv(_global_env, override=False)
+
+# Local .env (project-specific vars only)
 PROJECT_ROOT = Path(__file__).parent.parent.parent
-load_dotenv(PROJECT_ROOT / ".env")
+load_dotenv(PROJECT_ROOT / ".env", override=False)
 
 API_KEYS = {
     "Claude (Anthropic)": "ANTHROPIC_API_KEY",

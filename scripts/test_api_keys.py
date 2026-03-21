@@ -10,9 +10,14 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-# Load environment variables
+# Global API keys (Documents/.secrets/.env)
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-load_dotenv(PROJECT_ROOT / ".env")
+_global_env = Path.home() / "Documents" / ".secrets" / ".env"
+if _global_env.exists():
+    load_dotenv(_global_env, override=False)
+
+# Local .env (project-specific vars only)
+load_dotenv(PROJECT_ROOT / ".env", override=False)
 
 # Optional imports with graceful fallback
 try:

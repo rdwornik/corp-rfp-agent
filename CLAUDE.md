@@ -168,3 +168,9 @@ This repo uses: `GEMINI_API_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`
 - [corp-os-meta](../corp-os-meta/) — shared schemas
 - [corp-knowledge-extractor](../corp-knowledge-extractor/) — extraction engine
 - [ai-council](../ai-council/) — multi-model debate
+
+
+## Global Skills
+Before modifying code, consult ~/.claude/skills/gotchas/ for known ecosystem traps.
+After pytest passes, check ~/.claude/skills/verify/ for verification scripts.
+

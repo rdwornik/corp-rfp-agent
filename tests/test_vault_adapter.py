@@ -71,6 +71,7 @@ def test_retrieve_parses_json():
     assert "warehouse API" in cmd
     assert "--format" in cmd
     assert "json" in cmd
+    assert "--rfp-only" in cmd
     assert "--top" in cmd
     assert "5" in cmd
 
@@ -272,6 +273,34 @@ def test_corp_cli_error_returns_empty():
         result = vault_adapter._retrieve_via_cli("test query")
 
     assert result == []
+
+
+# ---------------------------------------------------------------------------
+# Test 10: verified notes sorted before extracted
+# ---------------------------------------------------------------------------
+def test_retrieve_sorts_verified_first():
+    """retrieve() sorts notes by confidence (verified first), then relevance."""
+    notes = [
+        _sample_note(note_id=1, confidence="extracted", relevance_score=0.95),
+        _sample_note(note_id=2, confidence="verified", relevance_score=0.70),
+        _sample_note(note_id=3, confidence="verified", relevance_score=0.90),
+        _sample_note(note_id=4, confidence="extracted", relevance_score=0.80),
+    ]
+    stdout = _make_cli_output(notes)
+
+    fake_result = MagicMock()
+    fake_result.returncode = 0
+    fake_result.stdout = stdout
+    fake_result.stderr = ""
+
+    with patch("vault_adapter.subprocess.run", return_value=fake_result):
+        result = vault_adapter.retrieve("test query")
+
+    # Verified notes come first, ordered by relevance within each tier
+    assert result[0]["note_id"] == 3  # verified, 0.90
+    assert result[1]["note_id"] == 2  # verified, 0.70
+    assert result[2]["note_id"] == 1  # extracted, 0.95
+    assert result[3]["note_id"] == 4  # extracted, 0.80
 
 
 # Need sqlite3 for the FTS5 test

@@ -59,6 +59,14 @@ def retrieve(
         n for n in notes if _TRUST_RANK.get(n.get("confidence", "draft"), 3) <= max_rank
     ]
 
+    # Sort: verified first (by trust rank), then by relevance score descending
+    notes.sort(
+        key=lambda n: (
+            _TRUST_RANK.get(n.get("confidence", "draft"), 3),
+            -(n.get("relevance_score", 0.0)),
+        )
+    )
+
     return notes[:limit]
 
 
@@ -112,7 +120,7 @@ def _retrieve_via_cli(
     limit: int = 10,
 ) -> list[dict]:
     """Call ``corp retrieve --format json`` and parse output."""
-    cmd = ["corp", "retrieve", query, "--format", "json", "--top", str(limit)]
+    cmd = ["corp", "retrieve", query, "--format", "json", "--rfp-only", "--top", str(limit)]
 
     if products:
         for prod in products:

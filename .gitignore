@@ -5,6 +5,10 @@ __pycache__/
 *.pyd
 *.so
 *.dll
+*.egg-info/
+dist/
+build/
+.mypy_cache/
 
 # Virtual environments
 .venv/
@@ -20,7 +24,7 @@ ENV/
 .vscode/
 .idea/
 *.code-workspace
-.claude/settings.local.json
+.claude/
 
 # --- Ruff ---
 .ruff_cache/
@@ -127,7 +131,5 @@ RFP_Cognitive_Agent_Documentation.docx
 ~$P_Cognitive_Agent_Documentation.docx
 rfp_system_prompt_v*.txt
 
-# Environment variables
-.env
-.env.local
-.env.*.local
+# Data
+*.db
